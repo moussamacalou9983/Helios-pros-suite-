@@ -7,15 +7,28 @@
 //! international timing services (IERS) and only approximated for future
 //! dates.
 //!
-//! **Practical significance for this engine**: an error of even several
-//! tens of seconds in ΔT shifts the Sun's apparent position by well under
-//! 0.01° (the sidereal rate is ~15"/second of time on the equator, so a
-//! 60-second ΔT error is ~15 arcmin... actually ~0.004°/second of UT1 drift
-//! contribution once accounted through sidereal time, i.e. a 60 s error is
-//! of order 0.004*60 ≈ 0.25 arcmin ≈ 0.004°), which is already below the
-//! ~0.01-0.02° accuracy floor set by the reduced solar-longitude series
-//! (see the ADR in `lib.rs`). A simple polynomial approximation is
-//! therefore sufficient for HeliosPro's purposes.
+//! **Practical significance for this engine**: Earth's mean rotation rate
+//! is ~15 arcseconds of hour angle per second of time (15°/hour), so a ΔT
+//! error of `n` seconds shifts the Sun's apparent position by
+//! approximately `n * 0.0041667°` -- e.g. a 1 s error is ~0.004°, but a
+//! 60 s error is already ~0.25°, not negligible. **Within** the
+//! documented 2005-2050 validity window, this estimator's own deviation
+//! from measured ΔT is at most a few seconds (a few times 0.004° ≈ well
+//! under 0.01°, consistent with the ~0.01-0.02° accuracy floor of the
+//! reduced Meeus series -- see the ADR in `lib.rs`), which is why a simple
+//! polynomial approximation is sufficient for HeliosPro's purposes
+//! *inside that window*. **Outside** 2005-2050 (e.g. year 1900 or 2100),
+//! evaluating this same polynomial is an uncontrolled extrapolation whose
+//! deviation from the true historical/future ΔT can reach several dozen
+//! seconds -- a position error approaching a degree, not negligible; see
+//! `docs/design/17-analyse-incertitude-numerique.md`, §17.4a, for the
+//! exact quadratic-term analysis quantifying this. Callers needing
+//! accuracy outside 2005-2050 should supply a known/reference `delta_t`
+//! directly to `crate::spa::compute`/`crate::meeus::compute` (or, in the
+//! `solar_position` crate, via its `spa::solar_position_precise` /
+//! `meeus::solar_position_precise` entry points) rather than rely on this
+//! estimator's extrapolation, exactly as `validation::global_campaign`
+//! does for its 1900-2100 sweep.
 
 /// Estimate ΔT (seconds) for a given UTC calendar year and month, using the
 /// polynomial expression valid for the years 2005-2050.

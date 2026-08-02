@@ -137,7 +137,8 @@ pub fn solar_position_precise(
     .rem_euclid(360.0);
 
     // --- Equatorial horizontal parallax, Eq. 3.12.2.
-    let xi_deg = 8.794 / (3600.0 * geocentric.earth_radius_vector_au);
+    let xi_deg =
+        core_constants::SOLAR_PARALLAX_ARCSEC_AT_1AU / (3600.0 * geocentric.earth_radius_vector_au);
 
     // --- Observer's geocentric latitude correction terms u, x, y,
     // Eq. 3.12.1, 3.12.3.

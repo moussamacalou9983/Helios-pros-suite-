@@ -36,6 +36,8 @@
 //! compares this implementation against pvlib across the 91-case dataset
 //! generated for this project.
 
+#[cfg(test)]
+mod precision_experiment;
 mod tables;
 
 use core_units::Angle;
