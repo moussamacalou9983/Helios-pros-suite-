@@ -4,7 +4,7 @@ use irradiance::extraterrestrial::{
     extraterrestrial_horizontal_irradiance, extraterrestrial_normal_irradiance,
 };
 use solar_geometry::incidence::angle_of_incidence;
-use solar_position::position::solar_position;
+use solar_position::solar_position;
 use thermal_model::{noct, sandia};
 use transposition::{TranspositionInputs, hay_davies, hdkr, isotropic, perez};
 
@@ -114,6 +114,7 @@ mod tests {
             observer: Observer {
                 latitude: Angle::from_degrees(45.0),
                 longitude: Angle::from_degrees(5.0),
+                elevation: core_units::Length::from_meters(200.0),
             },
             atmosphere: AtmosphericConditions {
                 pressure: Pressure::from_pascal(core_constants::STANDARD_ATMOSPHERE_PA),
@@ -140,7 +141,7 @@ mod tests {
 
     use crate::inputs::WeatherInput;
     use core_units::{Angle, Irradiance, Temperature, Velocity};
-    use solar_position::position::{AtmosphericConditions, Observer};
+    use solar_position::{AtmosphericConditions, Observer};
 
     #[test]
     fn daytime_energy_balance_produces_positive_poa_and_reasonable_cell_temperature() {

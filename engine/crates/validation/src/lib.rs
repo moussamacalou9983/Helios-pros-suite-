@@ -1,38 +1,74 @@
 //! # validation
 //!
-//! **Status: scaffolding only — not yet implemented.**
+//! External validation of HeliosPro's solar-position engines against an
+//! independent reference: [`dataset::DATASET`], 91 test cases computed by
+//! pvlib-python 0.15.2 (BSD-3-Clause), an independent, widely used,
+//! peer-reviewed open-source implementation of the NREL Solar Position
+//! Algorithm (Reda & Andreas, 2004).
 //!
-//! This crate will hold HeliosPro's external validation framework: curated
-//! reference datasets (published measurements, and — subject to their
-//! respective license terms — NREL SPA/pvlib/SAM/PVsyst comparison cases)
-//! together with automated comparison logic that runs the engine on each
-//! case's inputs and produces a structured error report (using
-//! [`core_math::stats`] for RMSE/MAE/bias/relative-error, already
-//! implemented and unit-tested), per `docs/design/14-strategie-tests.md`.
+//! [`report::evaluate`] runs a [`solar_position::SolarPositionAlgorithm`]
+//! against every case and produces per-quantity error statistics (mean
+//! bias, mean absolute error, RMSE, maximum absolute error) plus timing,
+//! per the project's validation campaign requirements — see
+//! [`report::EngineErrorReport`].
 //!
-//! **Why this is not implemented yet**: this development session had no
-//! working network access to fetch reference datasets or reference-tool
-//! outputs (see the ADR in `solar_geometry::lib` for the concrete failures
-//! encountered), so there is currently nothing legitimate for this crate to
-//! compare against. Populating it with fabricated "reference" numbers
-//! would be scientific misconduct, not a shortcut — it will be built once
-//! genuine reference data (from the project owner, from a future session
-//! with working network access, or from locally supplied datasets) is
-//! available. Until then, `docs/design/16-phase1-validation-report.md`
-//! documents the internal validation methodology (physical/geometric
-//! invariants, algebraic invariants, cross-validated independent formulas)
-//! actually used to gain confidence in the engine so far, and its explicit
-//! limits.
+//! ## What this crate validates, and what it does not
 //!
-//! **Planned references**: Reda, I. & Andreas, A. (2004), NREL/TP-560-34302
-//! (SPA reference test cases); Holmgren, W.F., Hansen, C.W., Mikofski, M.A.
-//! (2018), "pvlib python: a python package for modeling solar energy
-//! systems", *Journal of Open Source Software*, 3(29), 884 (pvlib
-//! comparison, open-source/BSD-licensed — a legitimate and appropriate
-//! comparison target, distinct from the proprietary tools this project
-//! must never copy code or interfaces from); NREL System Advisor Model
-//! (SAM) documentation; published PVsyst validation studies (comparison of
-//! *outputs only*, never of code or UI).
+//! This crate validates HeliosPro's solar-position engines
+//! ([`solar_position::Spa`], [`solar_position::MeeusReduced`]) against
+//! pvlib. It does **not** yet validate the irradiance/transposition/
+//! thermal layers against NREL SAM or PVsyst output (no access to those
+//! tools was available when this crate was built — see
+//! `docs/design/16-phase1-validation-report.md`). That remains explicit,
+//! tracked follow-up work, not a silently narrowed scope: the crate name
+//! and this module documentation describe exactly what is covered today.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
+
+pub mod dataset;
+pub mod report;
+
+pub use report::{EngineErrorReport, QuantityErrorStats, evaluate};
+
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+    use solar_position::{MeeusReduced, Spa};
+    use std::fs;
+    use std::path::PathBuf;
+
+    /// Generates the full validation report (both engines) and writes it
+    /// to `engine/validation-data/latest_validation_report.md`, per the
+    /// project requirement to "produire automatiquement un rapport
+    /// d'erreur". Re-running the test suite regenerates this file
+    /// deterministically from the committed dataset and the current
+    /// engine code, so it always reflects the current state of the
+    /// implementation rather than a stale, manually written summary.
+    #[test]
+    fn generate_and_write_full_validation_report() {
+        let spa_report = evaluate(&Spa);
+        let meeus_report = evaluate(&MeeusReduced);
+
+        let mut markdown = String::new();
+        markdown.push_str("# HeliosPro — Rapport de validation automatique\n\n");
+        markdown.push_str(&format!(
+            "Genere par `validation::integration_tests::generate_and_write_full_validation_report` \
+             a partir de {} cas de reference (voir `engine/validation-data/README.md`).\n\n",
+            spa_report.case_count
+        ));
+        markdown.push_str(&spa_report.to_markdown());
+        markdown.push('\n');
+        markdown.push_str(&meeus_report.to_markdown());
+
+        let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let output_path = manifest_dir
+            .join("..")
+            .join("..")
+            .join("validation-data")
+            .join("latest_validation_report.md");
+        fs::write(&output_path, &markdown).unwrap_or_else(|e| {
+            panic!("failed to write validation report to {output_path:?}: {e}")
+        });
+    }
+}

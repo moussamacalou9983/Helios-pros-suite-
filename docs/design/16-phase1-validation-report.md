@@ -164,3 +164,155 @@ Phase 2 (modèle électrique PV, cf. feuille de route `15-feuille-de-route.md`),
 sous réserve que le porteur de projet valide explicitement le compromis de
 précision décrit en §16.2, ou fournisse un accès à la table SPA complète
 pour mise à niveau immédiate.
+
+> **Note (session 3)** : le compromis décrit en §16.2-16.5 a depuis été levé
+> — voir §17 ci-dessous. Cette section est conservée telle quelle pour la
+> traçabilité historique de la décision, conformément au principe retenu
+> dans `engine/crates/solar_geometry/src/lib.rs`.
+
+---
+
+# 17. Session 3 — SPA NREL complet, abstraction sélectionnable, campagne de validation externe
+
+**Statut** : point bloquant n°1 de la session 3 levé. Le moteur officiel de
+HeliosPro est désormais l'algorithme SPA (Solar Position Algorithm) complet
+du NREL, conformément à la publication Reda & Andreas (2004). Meeus (1998)
+est conservé exclusivement comme moteur secondaire de validation croisée.
+
+## 17.1 Références scientifiques utilisées
+
+### Références directement implémentées cette session
+
+| Référence | Usage |
+|---|---|
+| Reda, I. & Andreas, A. (2004). « Solar Position Algorithm for Solar Radiation Applications ». *Solar Energy*, 76(5), 577-589 (NREL/TP-560-34302) | Algorithme SPA complet : longitude/latitude/rayon héliocentriques (tables A4.2-A4.4, 64+34+20+7+3+1 / 5+2 / 40+10+6+2+1 termes), 5 arguments fondamentaux X0-X4, nutation (63 termes, table A3.2), aberration, temps sidéral, ascension droite/déclinaison géocentriques, parallaxe topocentrique, réfraction atmosphérique, azimut/zénith topocentriques, équation du temps |
+| Laskar, J. (1986), polynôme d'obliquité moyenne haute précision (via Reda & Andreas Eq. 3.5.1) | Obliquité moyenne de l'écliptique, degré 10 en U=JME/10 |
+| IAU 1980, série de nutation | 63 termes de nutation en longitude/obliquité (table A3.2 du rapport NREL) |
+| Holmgren, W.F., Hansen, C.W., Mikofski, M.A. (2018). « pvlib python: a python package for modeling solar energy systems ». *Journal of Open Source Software*, 3(29), 884 | Source de vérification indépendante (BSD-3-Clause) des tables de coefficients et des valeurs de référence de validation — voir §17.3 et `engine/validation-data/README.md` |
+| Meeus, J. (1998). *Astronomical Algorithms*, 2nd ed., Willmann-Bell | Moteur secondaire de validation croisée (inchangé depuis la session précédente) |
+
+Toutes les références déjà utilisées lors des sessions précédentes
+(Duffie & Beckman, Perez et al., Hay & Davies, Reindl et al., King et al.,
+Ross, Kasten & Young, Erbs et al., Liu & Jordan, Spencer, ISO/BIPM/CODATA
+pour les constantes) restent d'application inchangée — voir §16.1 et le
+code source pour le détail exhaustif, formule par formule.
+
+## 17.2 Performances
+
+Mesures effectuées dans cet environnement de développement (build `dev`,
+non `release` — les temps réels en production seront inférieurs) :
+
+| Mesure | Valeur |
+|---|---|
+| SPA — temps moyen par appel (campagne pvlib, 91 cas) | 5.6 µs/cas |
+| SPA — 8760 positions horaires (1 an) | ~32 ms (3.65 µs/appel) |
+| Meeus — temps moyen par appel (campagne pvlib, 91 cas) | 0.5 µs/cas |
+| Meeus — 8760 positions horaires (1 an) | ~4 ms (0.45 µs/appel) |
+| Ratio SPA/Meeus | ~8-9× (attendu : SPA somme des séries périodiques bien plus grandes) |
+
+Ces temps sont mesurés automatiquement à chaque exécution de
+`cargo test -p validation` (rapport régénéré dans
+`engine/validation-data/latest_validation_report.md`) et gardés sous
+budget de non-régression par `engine/crates/tests/tests/benchmarks.rs`
+(budget large : 2 s pour 8760 appels, soit ~60× la marge mesurée).
+Aucune dépendance externe de benchmarking n'a été ajoutée (mesure via
+`std::time::Instant`), pour préserver la propriété « zéro dépendance hors
+bibliothèque standard » du moteur.
+
+## 17.3 Écarts mesurés (validation externe contre pvlib)
+
+Campagne de 91 cas (1 cas canonique Reda & Andreas 2004 + 90 cas couvrant
+6 dates × 3 heures UTC × 5 sites sur les deux hémisphères), comparés
+automatiquement à la sortie de `pvlib.spa` (pvlib-python 0.15.2,
+BSD-3-Clause) — voir `engine/validation-data/README.md` pour la
+méthodologie complète et `engine/validation-data/latest_validation_report.md`
+pour les chiffres exacts régénérés à chaque exécution des tests.
+
+**SPA HeliosPro vs pvlib** (même algorithme, implémentations indépendantes) :
+
+| Grandeur | Erreur absolue max mesurée |
+|---|---|
+| Zénith apparent | 0.000064° |
+| Azimut | 0.000151° |
+| Élévation apparente | 0.000064° |
+| Angle horaire (géocentrique) | 0.000070° |
+| Déclinaison (géocentrique) | 0.000024° |
+| Équation du temps | 0.000031 min |
+| Ascension droite (géocentrique) | 0.000070° |
+| Distance Terre-Soleil | < 10⁻⁶ UA |
+
+Cet accord est de l'ordre de la précision numérique en double précision —
+cohérent avec le fait qu'il s'agit du même algorithme publié, implémenté
+deux fois indépendamment. C'est la validation la plus forte que ce projet
+puisse produire en interne sur sa propre implémentation SPA.
+
+**Meeus (moteur secondaire) vs pvlib** :
+
+| Grandeur | Erreur absolue max mesurée |
+|---|---|
+| Zénith apparent | 0.0076° |
+| Azimut | 0.0118° |
+| Élévation apparente | 0.0076° |
+| Angle horaire (géocentrique) | 0.0057° |
+| Équation du temps | 0.045 min |
+
+Ces écarts sont cohérents avec — et même légèrement meilleurs que —
+l'estimation ~0.01-0.02° documentée lors de la session précédente (§16.2),
+confirmant a posteriori que cette estimation était réaliste et non
+optimiste.
+
+Le cas canonique de validation (Golden, Colorado, 2003-10-17 19:30:30 UTC,
+exemple publié du rapport NREL/TP-560-34302 lui-même) est reproduit
+directement par le test
+`solar_position::spa::tests::reda_andreas_2004_worked_example_full_topocentric`,
+qui compare chaque étape intermédiaire (angle horaire topocentrique,
+déclinaison topocentrique, élévation, zénith apparent, azimut) à la
+publication originale avec une tolérance de 10⁻⁶ degré.
+
+## 17.4 Limites restantes
+
+- **Comparaison directe avec PVsyst, SAM (interface native) et Archelios
+  Calc** : toujours hors de portée dans cet environnement (aucun de ces
+  outils n'est installé ni accessible réseau). pvlib reste la seule source
+  de comparaison externe disponible.
+- **Table SPA** : vérifiée par comptage exact des lignes (64+34+20+7+3+1,
+  5+2, 40+10+6+2+1, 63+63) et par accord byte-exact du cas canonique avec
+  la publication originale, mais pas par relecture manuelle chiffre par
+  chiffre des ~760 coefficients contre le PDF NREL primaire (toujours
+  inaccessible). Le risque résiduel d'erreur de transcription est jugé
+  très faible compte tenu de : (a) extraction programmatique sans
+  retranscription manuelle, (b) accord à 6 décimales avec le cas de test
+  publié du rapport NREL lui-même, (c) nombres de lignes strictement
+  conformes aux tables publiées.
+- **Modèle électrique, pertes, bilan DC/AC complet** : toujours hors
+  périmètre (crates `pv_module`, `electrical_model`, `losses` restent des
+  squelettes documentés, conformément à la procédure « un module à la
+  fois »).
+- **Couverture externe hors position solaire** : les modèles d'irradiance
+  (transposition, décomposition), thermiques (NOCT/Sandia) restent validés
+  uniquement par invariants internes (voir §16.3), pas encore par
+  comparaison pvlib/SAM/PVsyst — pvlib propose pourtant des fonctions
+  équivalentes (`pvlib.irradiance`, `pvlib.temperature`) qui pourraient
+  étendre la campagne de validation dans une session future.
+
+## 17.5 Améliorations prévues
+
+1. Étendre la campagne `validation` aux modules `irradiance` et
+   `transposition` en comparant contre `pvlib.irradiance` (Erbs, Perez,
+   Hay-Davies, HDKR y sont également implémentés indépendamment).
+2. Étendre `validation` à `thermal_model` via `pvlib.temperature` (NOCT,
+   SAPM).
+3. Si un accès réseau à nrel.gov redevient possible, effectuer une
+   relecture chiffre par chiffre du rapport NREL/TP-560-34302 original
+   contre les tables actuelles, à titre de vérification indépendante
+   supplémentaire (non bloquante compte tenu de la validation §17.3, mais
+   une bonne pratique avant tout usage réglementaire).
+4. Implémenter `pv_module` puis `electrical_model` (modèle à diode
+   unique), dans cet ordre, en conservant la même rigueur méthodologique
+   (référencement systématique, tests d'invariants physiques, validation
+   externe dès que des données de référence deviennent disponibles).
+5. Explorer un mode de calcul vectorisé/parallélisé pour `spa::compute`
+   si les futurs besoins de simulation à grande échelle (portefeuilles de
+   projets, campagnes d'optimisation) rendent le coût actuel (3.65 µs par
+   position horaire) significatif à l'échelle de milliers de sites
+   simulés en parallèle — non nécessaire aujourd'hui (§17.2).

@@ -1,9 +1,29 @@
-//! Geocentric solar ephemeris: apparent ecliptic longitude, right ascension,
-//! declination, Earth-Sun distance, nutation, apparent obliquity, apparent
-//! sidereal time, and the equation of time.
+//! Reduced-order geocentric solar ephemeris (Meeus 1998): apparent
+//! ecliptic longitude, right ascension, declination, Earth-Sun distance,
+//! nutation, apparent obliquity, apparent sidereal time, and the equation
+//! of time.
 //!
-//! **Sources** (see the crate-level ADR-004 in `lib.rs` for the scope
-//! decision this module implements):
+//! ## Status: secondary validation engine (not the default)
+//!
+//! **As of the project's second development phase, this module is no
+//! longer HeliosPro's primary solar-position engine.** [`crate::spa`] (the
+//! full NREL Solar Position Algorithm, Reda & Andreas 2004, complete with
+//! its published coefficient tables) is now the default, primary engine —
+//! see `solar_position::lib` for the selectable `Spa`/`MeeusReduced`
+//! abstraction. This module is retained specifically as an **independent
+//! secondary engine for cross-validation**: because it is derived from a
+//! different published source with a different internal structure
+//! (closed-form low-order series vs. SPA's large periodic tables), close
+//! agreement between the two is meaningful evidence against a shared
+//! implementation bug, which comparing SPA against itself obviously could
+//! not provide.
+//!
+//! This module's own accuracy (~0.01-0.02 degrees, see the historical
+//! ADR-004 discussion previously in `lib.rs` and now in
+//! `docs/design/16-phase1-validation-report.md`) is unchanged and remains
+//! fully documented; only its role in the engine changed, not its content.
+//!
+//! **Sources**:
 //! - Meeus, J. (1998). *Astronomical Algorithms*, 2nd ed., Willmann-Bell.
 //!   - Chapter 22 ("Nutation and the Obliquity of the Ecliptic"), Eq. 22.1,
 //!     22.2, 22.3.
@@ -32,8 +52,8 @@ pub struct Ephemeris {
     pub apparent_sidereal_time_greenwich: Angle,
     /// Equation of time: the difference `apparent solar time - mean solar
     /// time`, expressed in minutes of time (a human-readable byproduct; not
-    /// used internally by [`crate::position::solar_position`], which works
-    /// directly from sidereal time and right ascension).
+    /// used internally by `solar_position::meeus::solar_position`, which
+    /// works directly from sidereal time and right ascension).
     pub equation_of_time_minutes: f64,
 }
 

@@ -3,7 +3,7 @@
 //! **Status: scaffolding only — not yet implemented.**
 //!
 //! This crate will hold the systematic loss models applied downstream of
-//! the [`electrical_model`] DC output: soiling, mismatch, DC/AC wiring
+//! the `electrical_model` crate's DC output: soiling, mismatch, DC/AC wiring
 //! (Joule losses), inverter clipping/efficiency, availability, and
 //! long-term degradation — each producing an explicit, individually
 //! reported loss term rather than a single opaque "system losses" factor

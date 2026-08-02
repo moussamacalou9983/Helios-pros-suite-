@@ -1,8 +1,8 @@
 //! Solar time utilities: day-of-year, equation of time, and apparent solar
 //! time / solar noon, expressed for a given observer longitude.
 //!
-//! Note that [`crate::position::solar_position`] does **not** depend on
-//! these functions — it derives the hour angle directly from apparent
+//! Note that `solar_position`'s topocentric algorithms do **not** depend on
+//! these functions — they derive the hour angle directly from apparent
 //! sidereal time and right ascension (the rigorous approach, avoiding any
 //! "standard meridian" bookkeeping). The functions here are provided
 //! because solar time is independently useful, human-readable output (e.g.
@@ -13,7 +13,7 @@
 use core_math::julian::{CalendarDateTime, JulianDayError};
 use core_units::Angle;
 
-use crate::ephemeris;
+use crate::{delta_t, spa};
 
 /// Day of the (Gregorian) year, 1-366, for the given calendar date.
 ///
@@ -34,11 +34,15 @@ pub fn day_of_year(dt: &CalendarDateTime) -> u32 {
 /// instant, in minutes. Geocentric quantity: independent of observer
 /// location.
 ///
-/// **Source**: Meeus (1998), Eq. 28.3 (see `solar_geometry::ephemeris`).
+/// **Source**: Reda & Andreas (2004), NREL/TP-560-34302, Eq. 3.11.1-3.11.3
+/// (computed via the primary [`spa`] engine, see the crate-level docs for
+/// why SPA and not [`crate::meeus`] is used here by default).
 pub fn equation_of_time_minutes(datetime_utc: CalendarDateTime) -> Result<f64, JulianDayError> {
-    let jd = datetime_utc.to_julian_day()?;
-    let eph = ephemeris::compute(jd, jd);
-    Ok(eph.equation_of_time_minutes)
+    let jd_ut = datetime_utc.to_julian_day()?;
+    let delta_t_seconds = delta_t::estimate_delta_t_seconds(datetime_utc.year, datetime_utc.month);
+    let jde = jd_ut + delta_t_seconds / core_constants::SECONDS_PER_DAY;
+    let pos = spa::compute(jde, jd_ut);
+    Ok(pos.equation_of_time_minutes)
 }
 
 /// Apparent solar time, in decimal hours (0-24), at the given UTC instant

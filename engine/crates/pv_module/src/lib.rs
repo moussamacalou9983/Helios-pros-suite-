@@ -5,9 +5,9 @@
 //! This crate will hold the PV module datasheet domain model: the
 //! electrical and physical parameters read from a manufacturer datasheet
 //! (`Voc`, `Isc`, `Vmpp`, `Impp` at STC, temperature coefficients, number of
-//! cells in series, technology/certifications) that [`electrical_model`]
-//! needs to evaluate the single-diode model, and that [`thermal_model`]'s
-//! NOCT path needs for the datasheet NOCT value.
+//! cells in series, technology/certifications) that the `electrical_model`
+//! crate needs to evaluate the single-diode model, and that the
+//! `thermal_model` crate's NOCT path needs for the datasheet NOCT value.
 //!
 //! It is intentionally left unimplemented in this session: the current
 //! development brief's explicit procedure is to implement and fully

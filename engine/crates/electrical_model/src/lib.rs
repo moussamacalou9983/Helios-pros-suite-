@@ -3,8 +3,8 @@
 //! **Status: scaffolding only — not yet implemented.**
 //!
 //! This crate will hold the PV single-diode electrical model: given
-//! plane-of-array irradiance ([`transposition`]), cell temperature
-//! ([`thermal_model`]), and a module's datasheet parameters
+//! plane-of-array irradiance (the `transposition` crate), cell temperature
+//! (the `thermal_model` crate), and a module's datasheet parameters
 //! ([`pv_module`]), compute the module's I-V curve and maximum power
 //! point.
 //!

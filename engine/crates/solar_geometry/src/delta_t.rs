@@ -1,6 +1,6 @@
 //! Estimation of ΔT = TT − UT1 (the difference between Terrestrial Time and
 //! Universal Time), needed to convert a UTC calendar timestamp into the
-//! Julian Ephemeris Day used by [`crate::ephemeris::compute`].
+//! Julian Ephemeris Day used by `crate::meeus::compute` or `crate::spa::compute`.
 //!
 //! ΔT arises from the slow, irregular deceleration of Earth's rotation and
 //! cannot be predicted exactly; it is measured after the fact by

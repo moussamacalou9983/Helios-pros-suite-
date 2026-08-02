@@ -1,6 +1,6 @@
 [package]
 name = "solar_position"
-description = "Topocentric solar position (SPA-class algorithm): zenith, azimuth, elevation, hour angle and atmospheric refraction, for the HeliosPro scientific engine"
+description = "Topocentric solar position with a selectable engine (full NREL SPA by default, reduced-order Meeus as a secondary validation engine): zenith, azimuth, elevation, hour angle and atmospheric refraction, for the HeliosPro scientific engine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

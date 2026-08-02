@@ -8,7 +8,7 @@
 //! Unlike the per-crate unit tests (each testing one crate's public API in
 //! isolation against physical/geometric invariants or cited reference
 //! values), this crate exercises multiple crates together through
-//! [`simulation::compute_energy_balance`], pinning specific numeric outputs
+//! `simulation::compute_energy_balance`, pinning specific numeric outputs
 //! as regression baselines: a change in engine output for these fixed
 //! inputs, however small, must be a *reviewed, intentional* change (e.g. an
 //! upgrade to a higher-precision solar-position series), never a silent

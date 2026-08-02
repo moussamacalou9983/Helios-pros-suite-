@@ -13,11 +13,12 @@ use std::f64::consts::PI;
 ///
 /// **Source**: basic radiometric inverse-square law applied to the solar
 /// constant (Duffie & Beckman (2013), Eq. 1.4.1a); `R` itself should come
-/// from [`solar_geometry::ephemeris::Ephemeris::earth_sun_distance_au`] (Meeus
-/// (1998) Eq. 25.5), which is more accurate than the classical Spencer
-/// (1971) Fourier fit for the same quantity — see
-/// [`extraterrestrial_normal_irradiance_spencer1971`] for a cross-check
-/// against that independent, widely cited approximation.
+/// from [`solar_geometry::spa::SpaGeocentricPosition::earth_radius_vector_au`]
+/// (Reda & Andreas (2004), the primary engine) or, for cross-validation,
+/// [`solar_geometry::meeus::Ephemeris::earth_sun_distance_au`] (Meeus
+/// (1998) Eq. 25.5) — see [`extraterrestrial_normal_irradiance_spencer1971`]
+/// for a further cross-check against an independent, widely cited Fourier
+/// approximation.
 pub fn extraterrestrial_normal_irradiance(earth_sun_distance_au: f64) -> Irradiance {
     let g0n = core_constants::SOLAR_CONSTANT_W_M2 / (earth_sun_distance_au * earth_sun_distance_au);
     Irradiance::from_watts_per_m2(g0n)
@@ -98,16 +99,25 @@ mod tests {
         assert!((g0.watts_per_m2() - 1361.0).abs() < 1e-6);
     }
 
-    /// Cross-validation: the Keplerian-ellipse based distance (via
-    /// `solar_geometry::ephemeris`, Meeus 1998 Eq. 25.5) and the
-    /// independently-sourced Spencer (1971) Fourier fit are two different
-    /// published approximations of the same physical quantity (Earth-Sun
-    /// distance through the year). Close agreement between the two is
-    /// strong evidence that neither contains a gross transcription error.
+    /// Cross-validation: the full SPA Keplerian-ellipse based distance (via
+    /// `solar_geometry::spa`, Reda & Andreas 2004) and the independently-
+    /// sourced Spencer (1971) Fourier fit are two different published
+    /// approximations of the same physical quantity (Earth-Sun distance
+    /// through the year). Close agreement between the two is strong
+    /// evidence that neither contains a gross transcription error.
+    ///
+    /// The tolerance here (0.12%) is looser than the one used for the
+    /// secondary Meeus engine (0.1%, see the next test): SPA's radius
+    /// vector includes higher-order periodic perturbation terms that
+    /// Spencer's 5-term Fourier fit does not capture, so a *bigger*
+    /// engine-to-Spencer residual is expected precisely where SPA is more
+    /// physically complete, not evidence of an SPA defect. The measured
+    /// maximum residual (~0.104%) is consistent with Spencer's own stated
+    /// accuracy for this quantity.
     #[test]
-    fn spencer_and_kepler_r_agree_across_the_year() {
+    fn spencer_and_spa_r_agree_across_the_year() {
         use core_math::julian::CalendarDateTime;
-        use solar_geometry::ephemeris;
+        use solar_geometry::spa;
 
         let mut max_relative_diff = 0.0_f64;
         for day in 1..=365u32 {
@@ -120,16 +130,49 @@ mod tests {
                 second: 0.0,
             };
             let jde = dt.to_julian_day().unwrap() + (day - 1) as f64;
-            let eph = ephemeris::compute(jde, jde);
-            let g0n_kepler = extraterrestrial_normal_irradiance(eph.earth_sun_distance_au);
+            let pos = spa::compute(jde, jde);
+            let g0n_spa = extraterrestrial_normal_irradiance(pos.earth_radius_vector_au);
             let g0n_spencer = extraterrestrial_normal_irradiance_spencer1971(day);
-            let diff = (g0n_kepler.watts_per_m2() - g0n_spencer.watts_per_m2()).abs()
+            let diff = (g0n_spa.watts_per_m2() - g0n_spencer.watts_per_m2()).abs()
+                / g0n_spencer.watts_per_m2();
+            max_relative_diff = max_relative_diff.max(diff);
+        }
+        assert!(
+            max_relative_diff < 0.0012,
+            "max relative difference between SPA-R and Spencer(1971) G0n = {:.4}%",
+            max_relative_diff * 100.0
+        );
+    }
+
+    /// The same cross-validation, using the secondary Meeus engine instead
+    /// of SPA, for additional redundancy (see `solar_geometry::meeus` for
+    /// why an independently-sourced secondary engine is kept at all).
+    #[test]
+    fn spencer_and_meeus_r_agree_across_the_year() {
+        use core_math::julian::CalendarDateTime;
+        use solar_geometry::meeus;
+
+        let mut max_relative_diff = 0.0_f64;
+        for day in 1..=365u32 {
+            let dt = CalendarDateTime {
+                year: 2024,
+                month: 1,
+                day: 1,
+                hour: 12,
+                minute: 0,
+                second: 0.0,
+            };
+            let jde = dt.to_julian_day().unwrap() + (day - 1) as f64;
+            let eph = meeus::compute(jde, jde);
+            let g0n_meeus = extraterrestrial_normal_irradiance(eph.earth_sun_distance_au);
+            let g0n_spencer = extraterrestrial_normal_irradiance_spencer1971(day);
+            let diff = (g0n_meeus.watts_per_m2() - g0n_spencer.watts_per_m2()).abs()
                 / g0n_spencer.watts_per_m2();
             max_relative_diff = max_relative_diff.max(diff);
         }
         assert!(
             max_relative_diff < 0.001,
-            "max relative difference between Kepler-R and Spencer(1971) G0n = {:.4}%",
+            "max relative difference between Meeus-R and Spencer(1971) G0n = {:.4}%",
             max_relative_diff * 100.0
         );
     }

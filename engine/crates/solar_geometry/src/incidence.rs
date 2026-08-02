@@ -16,7 +16,7 @@ pub struct SurfaceOrientation {
     /// Tilt from horizontal: 0° = horizontal, 90° = vertical.
     pub tilt: Angle,
     /// Surface azimuth, measured from geographic North, clockwise (same
-    /// convention as [`crate::position::SolarPosition::azimuth`]); e.g.
+    /// convention as `solar_position::SolarPosition::azimuth`); e.g.
     /// 180° for a surface facing due South.
     pub azimuth: Angle,
 }

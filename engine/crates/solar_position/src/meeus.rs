@@ -1,10 +1,26 @@
-//! Topocentric solar position: the public entry point of the crate's
-//! SPA-class algorithm (see the ADR in `lib.rs` for the precision scope).
+//! Reduced-order topocentric solar position, built on the secondary Meeus
+//! (1998) geocentric engine ([`solar_geometry::meeus`]).
+//!
+//! ## Status: secondary validation engine (not the default)
+//!
+//! See `solar_geometry::meeus` and the crate-level documentation in
+//! `lib.rs` for why this engine exists and is deliberately kept distinct
+//! from [`crate::spa`] (the primary engine): a genuinely independent
+//! second implementation is valuable evidence against shared bugs in a
+//! way that comparing the primary engine against itself cannot be.
+//!
+//! Unlike [`crate::spa`], this engine omits topocentric parallax
+//! correction entirely (its maximum amplitude, ~8.8 arcsec, is below this
+//! engine's own ~0.01-0.02° accuracy floor set by the reduced Meeus
+//! longitude series — see `solar_geometry::meeus` for the precision
+//! discussion), so [`Observer::elevation`](crate::common::Observer) is
+//! accepted (for API uniformity with [`crate::spa`]) but not used here.
 //!
 //! **Sources**:
 //! - Overall multi-step procedure: Reda, I. & Andreas, A. (2004), "Solar
 //!   Position Algorithm for Solar Radiation Applications", *Solar Energy*,
-//!   76(5), 577-589.
+//!   76(5), 577-589 (structure only; this module's geocentric stage uses
+//!   Meeus's reduced series, not SPA's tables).
 //! - Horizontal-coordinate (elevation/azimuth) transform: Meeus, J. (1998),
 //!   *Astronomical Algorithms*, 2nd ed., Willmann-Bell, Chapter 13
 //!   ("Transformation of Coordinates"), Eq. 13.5-13.6.
@@ -13,71 +29,11 @@
 //!   scaling also used in Reda & Andreas (2004), Eq. 3.19.
 
 use core_math::julian::{CalendarDateTime, JulianDayError};
-use core_units::{Angle, Pressure, Temperature};
+use core_units::Angle;
 
-use solar_geometry::{delta_t, ephemeris};
+use solar_geometry::{delta_t, meeus as meeus_geometry};
 
-/// Geographic position of the observer on Earth's surface.
-#[derive(Debug, Clone, Copy)]
-pub struct Observer {
-    /// Geographic latitude, positive north.
-    pub latitude: Angle,
-    /// Geographic longitude, positive **east** of Greenwich (see the
-    /// crate-level convention note in `lib.rs`).
-    pub longitude: Angle,
-}
-
-/// Local atmospheric conditions used only for the (small) atmospheric
-/// refraction correction near the horizon.
-#[derive(Debug, Clone, Copy)]
-pub struct AtmosphericConditions {
-    /// Station-level atmospheric pressure.
-    pub pressure: Pressure,
-    /// Ambient air temperature.
-    pub temperature: Temperature,
-}
-
-impl Default for AtmosphericConditions {
-    /// ISO 2533:1975 standard atmosphere sea-level pressure and a nominal
-    /// 15 °C temperature. Override with site-measured values when
-    /// available; the refraction correction this feeds into is at most a
-    /// few arcminutes, so the sensitivity to this default is small away
-    /// from the horizon.
-    fn default() -> Self {
-        AtmosphericConditions {
-            pressure: Pressure::from_pascal(core_constants::STANDARD_ATMOSPHERE_PA),
-            temperature: Temperature::from_celsius(15.0),
-        }
-    }
-}
-
-/// Complete topocentric solar position at a given instant and location.
-#[derive(Debug, Clone, Copy)]
-pub struct SolarPosition {
-    /// Geometric (airless) solar zenith angle: 0° = overhead, 90° =
-    /// horizon.
-    pub zenith_true: Angle,
-    /// Apparent solar zenith angle, including atmospheric refraction.
-    pub zenith_apparent: Angle,
-    /// Geometric solar elevation angle (`90° - zenith_true`).
-    pub elevation_true: Angle,
-    /// Apparent solar elevation angle (`90° - zenith_apparent`).
-    pub elevation_apparent: Angle,
-    /// Solar azimuth, measured from geographic North, clockwise (0°=N,
-    /// 90°=E, 180°=S, 270°=W).
-    pub azimuth: Angle,
-    /// Geocentric declination of the Sun at this instant.
-    pub declination: Angle,
-    /// Geocentric right ascension of the Sun at this instant.
-    pub right_ascension: Angle,
-    /// Local (geometric) hour angle of the Sun, normalized to
-    /// `(-180°, 180°]`; negative before local solar noon, positive after.
-    pub hour_angle: Angle,
-    /// Instantaneous Earth-Sun distance, astronomical units.
-    pub earth_sun_distance_au: f64,
-    /// Equation of time (apparent minus mean solar time), minutes.
-    pub equation_of_time_minutes: f64,
-}
+use crate::common::{AtmosphericConditions, Observer, SolarPosition};
 
 /// Pure spherical-astronomy transform from (latitude, declination, hour
 /// angle) to (geometric elevation, azimuth-from-North). Kept separate from
@@ -88,7 +44,7 @@ pub struct SolarPosition {
 /// **Source**: Meeus (1998), Eq. 13.5-13.6 (azimuth measured from South in
 /// Meeus's convention; converted here to the from-North, clockwise
 /// convention used throughout HeliosPro).
-fn topocentric_from_hour_angle(
+pub(crate) fn topocentric_from_hour_angle(
     latitude: Angle,
     declination: Angle,
     hour_angle: Angle,
@@ -119,7 +75,10 @@ fn topocentric_from_hour_angle(
 /// Returns 0 for true elevations below -1°, where the formula's small-angle
 /// behaviour becomes unreliable and the Sun's irradiance contribution is in
 /// any case zero.
-fn refraction_correction_degrees(true_elevation: Angle, atmosphere: AtmosphericConditions) -> f64 {
+pub(crate) fn refraction_correction_degrees(
+    true_elevation: Angle,
+    atmosphere: AtmosphericConditions,
+) -> f64 {
     let h_deg = true_elevation.degrees();
     if h_deg < -1.0 {
         return 0.0;
@@ -131,7 +90,7 @@ fn refraction_correction_degrees(true_elevation: Angle, atmosphere: AtmosphericC
 }
 
 /// Compute the full topocentric solar position for a UTC instant and
-/// observer location.
+/// observer location, using the secondary Meeus (1998) engine.
 ///
 /// # Errors
 /// Returns [`JulianDayError`] if `datetime_utc` is not a valid Gregorian
@@ -145,7 +104,7 @@ pub fn solar_position(
     let delta_t_seconds = delta_t::estimate_delta_t_seconds(datetime_utc.year, datetime_utc.month);
     let jde = jd_ut + delta_t_seconds / core_constants::SECONDS_PER_DAY;
 
-    let eph = ephemeris::compute(jde, jd_ut);
+    let eph = meeus_geometry::compute(jde, jd_ut);
 
     let hour_angle = (eph.apparent_sidereal_time_greenwich + observer.longitude
         - eph.right_ascension)
@@ -176,6 +135,15 @@ pub fn solar_position(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use core_units::Length;
+
+    fn test_observer(latitude_deg: f64, longitude_deg: f64) -> Observer {
+        Observer {
+            latitude: Angle::from_degrees(latitude_deg),
+            longitude: Angle::from_degrees(longitude_deg),
+            elevation: Length::from_meters(0.0),
+        }
+    }
 
     #[test]
     fn equinox_noon_elevation_equals_ninety_minus_latitude() {
@@ -257,10 +225,7 @@ mod tests {
         // own `solar_noon_utc_hour` to find the precise instant of solar
         // noon, then verify the full pipeline places the Sun almost
         // exactly due South with a near-zero hour angle.
-        let observer = Observer {
-            latitude: Angle::from_degrees(48.85),
-            longitude: Angle::from_degrees(2.35),
-        };
+        let observer = test_observer(48.85, 2.35);
         let date = CalendarDateTime {
             year: 2024,
             month: 3,
@@ -326,10 +291,7 @@ mod tests {
 
     #[test]
     fn zenith_and_elevation_are_complementary() {
-        let observer = Observer {
-            latitude: Angle::from_degrees(48.85),
-            longitude: Angle::from_degrees(2.35),
-        };
+        let observer = test_observer(48.85, 2.35);
         let dt = CalendarDateTime {
             year: 2024,
             month: 6,
@@ -349,10 +311,7 @@ mod tests {
     fn night_time_sun_is_below_horizon() {
         // Paris, near local midnight UTC in winter: Sun should be well
         // below the horizon (negative elevation).
-        let observer = Observer {
-            latitude: Angle::from_degrees(48.85),
-            longitude: Angle::from_degrees(2.35),
-        };
+        let observer = test_observer(48.85, 2.35);
         let dt = CalendarDateTime {
             year: 2024,
             month: 1,

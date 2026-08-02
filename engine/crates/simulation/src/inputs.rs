@@ -1,7 +1,7 @@
 use core_math::julian::CalendarDateTime;
 use core_units::{Angle, Irradiance, Ratio, Temperature, Velocity};
 use solar_geometry::incidence::SurfaceOrientation;
-use solar_position::position::{AtmosphericConditions, Observer, SolarPosition};
+use solar_position::{AtmosphericConditions, Observer, SolarPosition};
 use thermal_model::sandia::SandiaMountingCoefficients;
 use transposition::PlaneOfArrayIrradiance;
 

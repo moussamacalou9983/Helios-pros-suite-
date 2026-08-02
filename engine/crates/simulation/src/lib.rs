@@ -8,7 +8,7 @@
 //! This crate contains no new physics of its own; it wires together, in
 //! the physically correct order, the crates built earlier in this phase:
 //!
-//! 1. [`solar_position::position::solar_position`] — where is the Sun?
+//! 1. `solar_position::solar_position` — where is the Sun?
 //! 2. [`irradiance::extraterrestrial`] — how much energy would reach
 //!    a surface with no atmosphere, right now?
 //! 3. [`irradiance::decomposition::erbs_decomposition`] — if only GHI

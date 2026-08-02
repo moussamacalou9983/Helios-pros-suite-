@@ -14,8 +14,8 @@ engine/
     ├── core_constants/        # referenced physical/astronomical constants               [done]
     ├── core_units/            # SI unit newtypes (Angle, Temperature, Irradiance, ...)    [done]
     ├── core_math/             # Julian Day, interpolation, error statistics               [done]
-    ├── solar_geometry/        # solar time, geocentric ephemeris, angle of incidence      [done]
-    ├── solar_position/        # topocentric solar position (SPA-class algorithm)          [done]
+    ├── solar_geometry/        # solar time, geocentric ephemeris (spa + meeus), incidence [done]
+    ├── solar_position/        # topocentric solar position, selectable Spa/MeeusReduced   [done]
     ├── irradiance/            # extraterrestrial irradiance, GHI/DNI/DHI decomposition    [done]
     ├── transposition/         # isotropic, Hay-Davies, HDKR, Perez POA models             [done]
     ├── pv_module/             # PV module datasheet domain model                          [scaffolding]
@@ -23,7 +23,7 @@ engine/
     ├── electrical_model/      # single-diode electrical model                             [scaffolding]
     ├── losses/                # systematic loss models (soiling, mismatch, wiring, ...)   [scaffolding]
     ├── simulation/            # top-level orchestration ("bilan energetique")             [done, partial*]
-    ├── validation/            # external validation vs. NREL SPA/pvlib/SAM/PVsyst         [scaffolding]
+    ├── validation/            # pvlib reference dataset + automated error reporting       [done]
     └── tests/                 # cross-crate regression ("golden dataset") tests           [done]
 ```
 
@@ -40,14 +40,31 @@ in the original Phase 1 brief), but does not yet call into
 `electrical_model`/`losses` to produce DC/AC electrical output — that
 extension is the natural next step once those crates land.
 
+### Two solar-position engines, one default
+
+`solar_geometry` and `solar_position` each contain **two independent
+implementations**:
+
+- **`spa`** — the full NREL Solar Position Algorithm (Reda & Andreas,
+  2004), complete with its published coefficient tables. **This is the
+  default, primary engine** (`solar_position::solar_position(...)` and
+  `solar_position::Spa` both use it).
+- **`meeus`** — a reduced-order engine (Meeus, 1998), kept only as an
+  **independent secondary engine for cross-validation**
+  (`solar_position::MeeusReduced`).
+
+See `crates/solar_geometry/src/lib.rs` for the full rationale, and
+`crates/validation/` for the automated comparison of both against an
+external reference (pvlib-python).
+
 ### Dependency graph
 
 ```
 core_constants, core_units, core_math      (no internal dependencies)
         |
-solar_geometry (needs core_*)
+solar_geometry (needs core_*; contains both the spa and meeus engines)
         |
-        +--> solar_position (needs solar_geometry)
+        +--> solar_position (needs solar_geometry; selects spa/meeus)
         +--> irradiance      (needs solar_geometry)
         +--> transposition   (needs solar_geometry)
         |
@@ -61,7 +78,7 @@ losses (needs core_units)
 simulation (needs solar_position, irradiance, transposition, thermal_model, core_*)
         |
 tests (dev-depends on everything above)
-validation (needs core_math; will need everything, once implemented)
+validation (needs core_math, core_units, solar_position)
 ```
 
 Each crate is independently buildable and testable
@@ -72,7 +89,7 @@ Each crate is independently buildable and testable
 ```bash
 cd engine
 cargo build --workspace                  # compile every crate
-cargo test --workspace                   # run every test (114 tests as of this commit)
+cargo test --workspace                   # run every test
 cargo clippy --workspace --all-targets   # lint (zero warnings)
 cargo fmt --all -- --check               # formatting (clean)
 cargo doc --workspace --no-deps --open   # browse the referenced API documentation
@@ -80,30 +97,67 @@ cargo doc --workspace --no-deps --open   # browse the referenced API documentati
 
 No network access, no external services, and no dependency outside the
 Rust standard library are required to build or test this engine (verify
-with `cargo tree --workspace`, which lists path dependencies only).
+with `cargo tree --workspace`, which lists path dependencies only). The
+`validation` crate's reference dataset was generated offline once (see
+`validation-data/README.md`) and is committed; building/testing this
+engine never requires network access or a Python interpreter.
 
-## Precision scope: read before using in production
+## Scientific validation
 
-The Sun-position algorithm implemented here is **not** a byte-for-byte
-reproduction of the full NREL SPA (Reda & Andreas 2004) coefficient tables —
-see the Architecture Decision Record at the top of
-`crates/solar_geometry/src/lib.rs` for exactly why, and
-`docs/design/16-phase1-validation-report.md` for the full validation
-methodology and its current limits. In short: this development session had
-no working network access to the primary NREL source, so a reduced-order,
-still fully-cited (Meeus 1998) solar-position series is used instead
-(~0.01-0.02° accuracy vs. SPA's ±0.0003°), with the full multi-step
-topocentric procedure otherwise implemented exactly. This is judged
-sufficient for the <1% energy-yield deviation target, but has not yet been
-cross-validated against actual PVsyst/SAM/pvlib/Archelios Calc output (also
-unavailable in this session — see `crates/validation/src/lib.rs`) — only
-against internal physical/geometric invariants, algebraic invariants, and
-independent formula cross-checks. See the validation report for the
-complete, honest accounting of what has and has not been verified.
+`cargo test -p validation` runs both engines against 91 independently
+computed reference cases (pvlib-python 0.15.2) and asserts documented
+accuracy budgets; it also regenerates
+`validation-data/latest_validation_report.md`, a full per-quantity error
+report (mean bias, mean absolute error, RMSE, maximum absolute error,
+timing) for both engines. As of the current implementation, SPA agrees
+with pvlib to within 0.0002° across every angular quantity checked
+(zenith, azimuth, elevation, hour angle, declination, right ascension)
+and to machine precision on the Earth radius vector — see that report for
+exact figures and `docs/design/16-phase1-validation-report.md` for the
+full methodology, including what remains unvalidated (irradiance/
+transposition/thermal layers have no external reference comparison yet).
+
+## Extending the engine: architecture for future modules
+
+Per the project's roadmap (PV done or in progress; storage/batteries,
+microgrids, solar pumping, wind, hydrogen, HVAC, economic analysis, AI
+optimization planned), this workspace's layering is deliberately
+domain-agnostic where it needs to be, so those future modules can be
+added as new crates without modifying the scientific core built so far:
+
+- **`core_constants`, `core_units`, `core_math`** contain no PV-specific
+  concepts whatsoever (physical constants, SI unit newtypes, calendar/
+  numerical utilities) — any future energy-domain crate (battery
+  electrochemistry, hydraulic pumping, HVAC thermodynamics, economic
+  cashflow models) depends on these same three crates the same way the PV
+  chain does, and never needs to depend on `solar_geometry`,
+  `transposition`, or any other PV-specific crate.
+- **`solar_geometry`/`solar_position`** are themselves reusable beyond PV:
+  solar pumping, HVAC solar-gain calculations, and building energy models
+  all need the same solar position and irradiance geometry computed here.
+- Each crate exposes a narrow, typed public API (see each crate's `lib.rs`
+  module documentation) rather than a shared mutable "god object" — a
+  future `battery_model` or `microgrid_dispatch` crate would consume
+  `simulation`'s `EnergyBalanceResult` (or a similar typed output) as an
+  *input*, the same way `simulation` today consumes `transposition`'s and
+  `thermal_model`'s outputs, without those upstream crates needing to know
+  the downstream crate exists.
+- The `SolarPositionAlgorithm` trait in `solar_position` (implemented by
+  both `Spa` and `MeeusReduced`) is the template for how future
+  multi-engine domains (e.g. multiple battery degradation models, multiple
+  MPPT/dispatch strategies) should expose a selectable-implementation
+  abstraction: a small trait, one struct per engine, a documented default.
+- No module implemented so far reaches into another module's private
+  state — every cross-crate interaction goes through `pub` types and
+  functions with documented units and citations, which is what makes
+  independent addition of new domains (rather than invasive refactoring)
+  possible.
 
 ## Documentation
 
 - Design-phase documents: `../docs/design/`
 - Phase 1 validation report: `../docs/design/16-phase1-validation-report.md`
+- Validation dataset provenance: `validation-data/README.md`
+- Latest automated validation report: `validation-data/latest_validation_report.md`
 - API documentation: generate with `cargo doc` (every public item is
   documented with a citation to its source, per project rules)

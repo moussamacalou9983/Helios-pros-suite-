@@ -12,10 +12,16 @@
 /// # Panics
 ///
 /// Panics (via `debug_assert`) in debug builds if `xs` and `ys` differ in
-/// length, if either has fewer than 2 points, or if `xs` is not sorted in
-/// non-decreasing order. Release builds skip these checks for performance;
-/// callers of a public API embedding this function are expected to validate
-/// their static tables once at construction time.
+/// length, if either has fewer than 2 points, if `xs` is not sorted in
+/// non-decreasing order, or if `x` is NaN (a NaN `x` compares false against
+/// both boundary checks below and would otherwise reach the binary search
+/// with an undefined ordering, which is the one case release builds cannot
+/// simply "skip" safely — see the `unwrap()` justification at the search
+/// call site). Release builds skip the `debug_assert!` checks for
+/// performance; callers of a public API embedding this function are
+/// expected to validate their static tables once at construction time and
+/// to never pass a NaN query point (which has no meaningful interpolated
+/// value in any case).
 pub fn linear_interpolate(x: f64, xs: &[f64], ys: &[f64]) -> f64 {
     debug_assert_eq!(xs.len(), ys.len(), "xs and ys must have equal length");
     debug_assert!(xs.len() >= 2, "need at least two points to interpolate");
@@ -23,6 +29,7 @@ pub fn linear_interpolate(x: f64, xs: &[f64], ys: &[f64]) -> f64 {
         xs.windows(2).all(|w| w[0] <= w[1]),
         "xs must be sorted in non-decreasing order"
     );
+    debug_assert!(!x.is_nan(), "x must not be NaN");
 
     if x <= xs[0] {
         return ys[0];
@@ -32,7 +39,13 @@ pub fn linear_interpolate(x: f64, xs: &[f64], ys: &[f64]) -> f64 {
         return ys[last];
     }
 
-    // Binary search for the bracketing interval [xs[i], xs[i+1]].
+    // Binary search for the bracketing interval [xs[i], xs[i+1]]. The
+    // `unwrap()` here is justified, not merely convenient: `x` is finite
+    // and strictly between two finite, sorted `xs` bounds at this point
+    // (both NaN and out-of-range `x` were already handled above, and `xs`
+    // is documented as containing no NaN), so `partial_cmp` cannot return
+    // `None` for any `probe` in `xs` -- this is a total order in practice,
+    // `PartialOrd` only because `f64` as a whole is not.
     let i = match xs.binary_search_by(|probe| probe.partial_cmp(&x).unwrap()) {
         Ok(exact) => return ys[exact],
         Err(insert_at) => insert_at - 1,

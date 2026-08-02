@@ -27,6 +27,7 @@ fn reference_site_input(transposition_model: TranspositionModel) -> EnergyBalanc
         observer: Observer {
             latitude: Angle::from_degrees(45.188),
             longitude: Angle::from_degrees(5.724),
+            elevation: core_units::Length::from_meters(212.0),
         },
         atmosphere: AtmosphericConditions {
             pressure: Pressure::from_hectopascal(1013.25),
