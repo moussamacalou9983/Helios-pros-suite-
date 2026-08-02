@@ -1,0 +1,7 @@
+# Rust
+/engine/target/
+**/target/
+Cargo.lock.bak
+
+# OS
+.DS_Store

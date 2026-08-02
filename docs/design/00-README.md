@@ -49,6 +49,12 @@ ouvertes, et une architecture logicielle moderne conçue indépendamment.
 13. [Formats d'import/export](13-formats-import-export.md)
 14. [Stratégie de tests](14-strategie-tests.md)
 15. [Feuille de route](15-feuille-de-route.md)
+16. [Phase 1 — Rapport de validation du moteur scientifique](16-phase1-validation-report.md)
+
+## Avancement du développement
+
+- **Phase 1 (Core Engine) : livrée.** Voir `engine/` (workspace Rust, 7
+  crates, 111 tests) et le [rapport de validation](16-phase1-validation-report.md).
 
 ## Prochaine étape
 

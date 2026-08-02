@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/heliospro-constants",
+    "crates/heliospro-units",
+    "crates/heliospro-math",
+    "crates/heliospro-solar",
+    "crates/heliospro-transposition",
+    "crates/heliospro-thermal",
+    "crates/heliospro-energy-balance",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "LicenseRef-HeliosPro-Proprietary"
+authors = ["HeliosPro Engineering"]
+repository = "https://github.com/moussamacalou9983/Helios-pros-suite-"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[profile.dev]
+opt-level = 1
