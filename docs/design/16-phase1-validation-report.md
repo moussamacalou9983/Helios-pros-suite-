@@ -316,3 +316,104 @@ publication originale avec une tolérance de 10⁻⁶ degré.
    projets, campagnes d'optimisation) rendent le coût actuel (3.65 µs par
    position horaire) significatif à l'échelle de milliers de sites
    simulés en parallèle — non nécessaire aujourd'hui (§17.2).
+
+---
+
+# 20. Session 4 — Validation scientifique renforcée et critères de sortie de la Phase Position Solaire
+
+**Statut** : les 7 exigences de la session 4 (« nous ne devons pas
+seulement valider le code, nous devons valider le modèle scientifique »)
+sont satisfaites. Cette section consolide les preuves ; chaque sous-section
+renvoie vers le document ou le rapport auto-généré qui porte le détail
+complet plutôt que de le dupliquer ici.
+
+## 20.1 Campagne de validation mondiale
+
+`validation::global_campaign` compare SPA et Meeus à pvlib-python sur
+**2918 cas** stratifiés sur l'enveloppe complète demandée : latitude
+[-90°, 90°], longitude [-180°, 180°], altitude [0, 6000] m, années
+1900-2100 (avec l'exception séculaire grégorienne), lever/coucher de
+soleil, soleil au zénith, nuit polaire, jour polaire. Voir
+`engine/crates/validation/src/global_campaign/mod.rs` (documentation de
+module) et `engine/validation-data/latest_global_campaign_report.md`
+(régénéré à chaque `cargo test -p validation`). Deux effets de bord réels
+(divergence de convention de réfraction près de l'horizon, singularité de
+coordonnées de l'azimut au zénith) ont été mesurés, expliqués physiquement
+et bornés par des tests dédiés plutôt que masqués par un seuil élargi sans
+justification. Note sur les « changements d'heure »/« fuseaux horaires » :
+couverts par le balayage complet de longitude et par la catégorie
+`near_midnight_utc`, avec justification explicite de ce choix dans le
+même fichier (le moteur est UTC-only par décision d'architecture
+antérieure).
+
+## 20.2 Analyse d'incertitude
+
+`docs/design/17-analyse-incertitude-numerique.md` couvre les quatre axes
+demandés : sources d'erreur numérique, influence des arrondis (mesurée :
+~4×10⁻⁵ s au niveau du Jour Julien sur 1900-2100), précision simple vs
+double précision (mesurée empiriquement via un test reproductible :
+~0.02″ d'écart sur la série L0 à elle seule), influence des constantes
+astronomiques (ΔT hors domaine validé identifié comme le facteur
+dominant, avec analyse chiffrée du terme quadratique d'extrapolation ;
+écart d'ellipsoïde SPA/WGS84 quantifié comme négligeable). Une
+incohérence arithmétique réelle préexistante dans la documentation de
+`solar_geometry::delta_t` a été détectée et corrigée à cette occasion.
+
+## 20.3 Stabilité numérique
+
+`engine/crates/tests/tests/numerical_stability.rs` : 6 tests dédiés
+(angles très petits, angles proches de 90°, angles proches de 180°,
+latitudes extrêmes ±90° exactement, années 1582-9999, heures proches de
+minuit y compris franchissements de jour bissextile/nouvel an), pour les
+deux moteurs. Aucun NaN, aucune instabilité, dans aucun cas — y compris
+aux pôles géographiques exacts. Complété par l'assertion de finitude
+exhaustive sur les ~2900×2 cas de la campagne mondiale (§20.1).
+
+## 20.4 Benchmarks étendus
+
+`engine/crates/tests/tests/benchmarks.rs` mesure, pour SPA et Meeus, sur
+un an d'appels horaires : temps moyen, écart-type (via
+`core_math::stats::standard_deviation`, nouvellement ajouté), minimum/
+maximum, nombre d'appels à l'allocateur et octets alloués (via un
+allocateur global compteur dédié). Résultat mesuré : **zéro allocation
+sur le tas en régime stable** pour les deux moteurs. Voir
+`engine/validation-data/latest_benchmark_report.md` (régénéré à chaque
+`cargo test -p tests`).
+
+## 20.5 Document scientifique complet
+
+`docs/design/18-annexe-technique-position-solaire.md` : annexe technique
+autonome (algorithmes, équations numérotées comme dans les publications
+sources, deux démonstrations de trigonométrie sphérique et de correction
+de parallaxe, deux diagrammes Mermaid, tableau de comparaison structurel
+SPA/Meeus, hypothèses et limites explicites, bibliographie complète,
+glossaire des symboles).
+
+## 20.6 API publique et SemVer
+
+`docs/design/19-politique-semver-api.md` : couverture de documentation de
+l'API publique vérifiée à 100 % (`RUSTFLAGS="-D missing_docs" cargo doc
+--workspace --no-deps` : zéro avertissement, zéro dérogation locale),
+surface d'API des crates de la phase Position Solaire recensée par
+extraction directe du code source, politique SemVer explicite adoptée
+pour la branche 0.x, confirmation qu'aucun changement cassant n'a été
+introduit durant cette phase.
+
+## 20.7 Critères de sortie — vérification finale
+
+| Critère | Statut | Preuve |
+|---|---|---|
+| 0 warning | ✓ | `cargo build/clippy/fmt --check/doc --workspace` : zéro avertissement (vérifié à chaque commit de cette session) |
+| 0 erreur | ✓ | `cargo test --workspace --release` : 164 tests, 0 échec |
+| Couverture > 95 % | ✓ | `cargo llvm-cov --workspace --summary-only` : **97.99 % lignes, 97.89 % régions, 98.01 % fonctions** — mesuré, pas estimé ; voir `engine/validation-data/latest_coverage_report.txt` |
+| Documentation complète | ✓ | §20.6, couverture 100 % vérifiée mécaniquement |
+| Stabilité numérique démontrée | ✓ | §20.3 |
+| Validation mondiale réussie | ✓ | §20.1 |
+| Rapport scientifique généré | ✓ | §20.5, plus les 3 rapports auto-générés (`latest_validation_report.md`, `latest_global_campaign_report.md`, `latest_benchmark_report.md`) |
+
+La Phase Position Solaire est considérée comme terminée au sens des 7
+critères ci-dessus. Conformément à l'instruction reçue, aucun
+développement de `pv_module` n'a été entamé durant cette session ; le
+crate reste au statut « squelette documenté » (§18.1 de ce document,
+§20.6 de `19-politique-semver-api.md`) dans l'attente d'une validation
+explicite pour passer au module suivant.

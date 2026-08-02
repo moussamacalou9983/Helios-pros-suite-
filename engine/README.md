@@ -189,6 +189,7 @@ added as new crates without modifying the scientific core built so far:
 - Validation dataset provenance: `validation-data/README.md`
 - Latest automated validation reports: `validation-data/latest_validation_report.md`,
   `validation-data/latest_global_campaign_report.md`,
-  `validation-data/latest_benchmark_report.md`
+  `validation-data/latest_benchmark_report.md`,
+  `validation-data/latest_coverage_report.txt`
 - API documentation: generate with `cargo doc` (every public item is
   documented with a citation to its source, per project rules)
