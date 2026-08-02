@@ -1,9 +1,19 @@
 # 19. Vérification de l'API publique et politique SemVer
 
-**Statut** : audit effectué, politique adoptée, applicable dès maintenant à
-tous les crates du workspace `engine/`. Répond à l'exigence de sortie de
-phase : « Vérifier que l'API publique est stable. Documenter chaque
-fonction. Respecter SemVer. »
+**Statut** : audit effectué, politique adoptée, **API gelée** au tag
+`v1.0.0-scientific-core` (voir `docs/releases/v1.0.0-scientific-core.md`).
+Répond à l'exigence de sortie de phase : « Vérifier que l'API publique est
+stable. Documenter chaque fonction. Respecter SemVer. », ainsi qu'à
+l'exigence de clôture de phase : « Considérer l'API publique du moteur
+solaire comme stable. Identifier clairement : API publiques, API internes,
+API expérimentales. » (§19.6).
+
+**Portée du gel** : les crates `core_constants`, `core_units`, `core_math`,
+`solar_geometry`, `solar_position` et `validation`. Les crates
+`pv_module`, `electrical_model`, `losses` restent des squelettes
+documentés sans API à geler (aucun item public au-delà de la documentation
+de module elle-même — voir `engine/README.md`) ; leur API sera définie et
+gelée séparément lors de leur implémentation.
 
 ## 19.1 Couverture de documentation — vérifié, pas supposé
 
@@ -168,3 +178,83 @@ comportement observable, seulement un changement de traçabilité interne.
 **Conclusion** : l'API publique du sous-système de position solaire est
 stable au sens où ce document la définit ; aucun changement cassant n'a
 été introduit pendant cette phase de validation renforcée.
+
+## 19.6 Gel de l'API — séparation Publique / Interne / Expérimentale
+
+Tous les items listés en §19.2 sont `pub` au sens de la visibilité Rust
+(sinon ils n'apparaîtraient pas dans cette liste extraite par `grep`),
+mais « visible depuis l'extérieur du crate » et « destiné à être le point
+d'entrée stable pour du code applicatif externe au workspace » sont deux
+questions différentes. Cette section répond à la seconde, ce que la
+visibilité Rust seule ne peut pas exprimer.
+
+### API publique — le contrat stable, point d'entrée recommandé
+
+Ce sont les items que du code applicatif (futur module `pv_module`, futur
+GUI/API/rapports, ou tout consommateur externe au workspace) doit utiliser
+directement. Couverts par la politique SemVer §19.3 dans toute sa rigueur :
+tout changement cassant ici requiert au minimum un incrément MINOR
+documenté.
+
+| Crate | Items |
+|---|---|
+| `core_constants` | Les 13 constantes (§19.2) |
+| `core_units` | `Angle`, `Irradiance`, `Length`, `Pressure`, `Ratio`, `Temperature`, `Velocity` et leurs méthodes associées |
+| `core_math` | `julian::{CalendarDateTime, JulianDayError}`, `stats::*` (7 fonctions), `interpolation::linear_interpolate` |
+| `solar_geometry` | `incidence::{SurfaceOrientation, angle_of_incidence}`, `time::{day_of_year, equation_of_time_minutes, apparent_solar_time_hours, solar_noon_utc_hour}` |
+| `solar_position` | `solar_position` (fonction racine), `SolarPositionAlgorithm` (trait), `Spa`, `MeeusReduced`, `Observer`, `AtmosphericConditions`, `SolarPosition` |
+
+C'est la surface qu'un futur `pv_module`/`electrical_model` doit consommer :
+`solar_position::solar_position(...)` (ou `Spa`/`MeeusReduced` explicite via
+le trait) pour la position solaire, `solar_geometry::incidence::angle_of_incidence`
+pour l'angle d'incidence sur un plan orienté — jamais les modules
+géocentriques bas niveau ci-dessous directement.
+
+### API interne — visibilité `pub` requise pour le câblage inter-crates, non destinée à un usage applicatif direct
+
+Ces items doivent rester `pub` (ils sont consommés depuis un autre crate du
+workspace, ce que la visibilité `pub(crate)` ne permettrait pas), mais ne
+sont pas le point d'entrée recommandé : ils exposent des étapes
+intermédiaires spécifiques à une implémentation donnée (géocentrique avant
+correction topocentrique, `delta_t` non estimé, etc.), destinées à être
+consommées par `solar_position` (pour SPA/Meeus) et par `validation` (pour
+reproduire exactement les cas de référence externes avec un `delta_t`
+connu). Un changement ici est **toujours** traité comme un changement
+d'implémentation interne au sens de §19.3.1 (PATCH), sauf s'il modifie
+une garantie déjà documentée dans l'annexe technique
+(`18-annexe-technique-position-solaire.md`), auquel cas §19.3.3 s'applique.
+
+| Crate | Items | Consommé par |
+|---|---|---|
+| `solar_geometry` | `delta_t::estimate_delta_t_seconds` | `solar_position::{spa, meeus}` |
+| `solar_geometry` | `meeus::{Ephemeris, compute}` | `solar_position::meeus` |
+| `solar_geometry` | `spa::{SpaGeocentricPosition, compute}` | `solar_position::spa`, `validation` (tests géocentriques) |
+| `solar_position` | `meeus::solar_position_precise` | `validation::global_campaign` (delta_t explicite, hors fenêtre 2005-2050) |
+| `solar_position` | `spa::{solar_position_precise, DEFAULT_ATMOSPHERIC_REFRACTION_AT_HORIZON_DEG}` | `solar_position::spa::{solar_position, solar_position_detailed}`, `validation` |
+| `validation` | `dataset::*`, `global_campaign::*`, `report::*` (crate entier) | Suite de tests uniquement (`cargo test -p validation`) ; `validation` n'est jamais une dépendance de `simulation` ni d'un futur crate applicatif — c'est un outil de développement/CI, pas une brique du moteur de production |
+
+### API expérimentale — forme non garantie, susceptible d'évoluer sans incrément MINOR
+
+Un seul item est classé ainsi à ce jour : `solar_position::spa::{solar_position_detailed, SpaDetailedResult}`.
+Contrairement au reste de l'API interne (dont la forme est dictée par
+l'algorithme publié et donc stable), `SpaDetailedResult` expose un
+ensemble de champs intermédiaires (parallaxe, ascension droite topocentrique,
+etc.) choisi pour les besoins actuels de `validation::report` — cet
+ensemble de champs pourrait croître ou se réorganiser si un besoin de
+diagnostic différent apparaît, sans que cela reflète un changement de
+l'algorithme SPA lui-même. Un changement de forme de ce struct spécifique
+est donc explicitement exempté de la règle §19.3.3 (pas besoin d'incrément
+MINOR), tant que `solar_position_precise` et `solar_position` (l'API
+publique, ci-dessus) restent inchangées.
+
+### Ce que ce gel garantit concrètement à partir du tag `v1.0.0-scientific-core`
+
+- Aucune signature de l'API publique (tableau ci-dessus) ne changera sans
+  incrément MINOR documenté et note de migration.
+- `pv_module` et les modules suivants pourront dépendre de l'API publique
+  en toute confiance dès maintenant.
+- Toute évolution de l'API interne ou expérimentale reste possible sans
+  cérémonie, tant que l'API publique et les budgets de précision
+  documentés (`18-annexe-technique-position-solaire.md` §18.7) restent
+  intacts — vérifié à chaque commit par la CI (§7 de
+  `docs/design/20-rapport-cloture-phase1.md`).

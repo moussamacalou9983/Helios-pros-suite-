@@ -1,0 +1,142 @@
+# HeliosPro — Intégration continue du moteur scientifique (engine/).
+#
+# Exécutée à chaque push et à chaque pull request : formatage, lint,
+# build, suite de tests complète (y compris la campagne de validation
+# scientifique et les benchmarks critiques de non-régression), et
+# documentation API à couverture garantie. Un échec de n'importe quel job
+# bloque la fusion — voir la branch protection rule sur `main`.
+#
+# Politique "zéro dépendance hors bibliothèque standard" du moteur
+# lui-même (voir engine/README.md) : cette contrainte porte sur les
+# crates du workspace, pas sur l'outillage CI (cargo-llvm-cov, actions
+# GitHub) qui n'est jamais compilé dans le binaire du moteur.
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fmt:
+    name: cargo fmt --check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Vérifier le formatage
+        working-directory: engine
+        run: cargo fmt --all --check
+
+  clippy:
+    name: cargo clippy -D warnings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+      - name: Lint (0 avertissement toléré)
+        working-directory: engine
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+  build-and-test:
+    name: Build, tests, validation scientifique, benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+
+      - name: Build (dev + release)
+        working-directory: engine
+        run: |
+          cargo build --workspace
+          cargo build --workspace --release
+
+      - name: Suite de tests complète (workspace, release)
+        working-directory: engine
+        run: cargo test --workspace --release
+
+      - name: Validation scientifique (91 cas pvlib + campagne mondiale 2918 cas)
+        working-directory: engine
+        run: cargo test -p validation --release -- --nocapture
+        # Échoue si SPA ou Meeus dévient de leur budget de précision
+        # documenté (voir crates/validation/src/report.rs et
+        # crates/validation/src/global_campaign/mod.rs), ou si une seule
+        # valeur non finie (NaN/inf) apparaît sur les ~2900 cas de la
+        # campagne mondiale.
+
+      - name: Tests de stabilité numérique (cas limites)
+        working-directory: engine
+        run: cargo test -p tests --test numerical_stability --release -- --nocapture
+
+      - name: Benchmarks critiques (budget de non-régression)
+        working-directory: engine
+        run: cargo test -p tests --test benchmarks --release -- --nocapture
+        # Échoue si le temps de calcul d'une année de positions horaires
+        # dépasse le budget documenté (crates/tests/tests/benchmarks.rs),
+        # ou si un moteur se met à allouer sur le tas (régression de
+        # performance mémoire).
+
+      - name: Rapports générés (artefacts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-reports
+          path: |
+            engine/validation-data/latest_validation_report.md
+            engine/validation-data/latest_global_campaign_report.md
+            engine/validation-data/latest_benchmark_report.md
+          if-no-files-found: warn
+          retention-days: 90
+
+  doc:
+    name: cargo doc (couverture API 100% obligatoire)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+      - name: Documentation (missing_docs promu en erreur)
+        working-directory: engine
+        env:
+          RUSTFLAGS: -D missing_docs
+        run: cargo doc --workspace --no-deps
+        # Échoue si un seul élément public d'un des 14 crates n'a pas de
+        # commentaire de documentation — voir
+        # docs/design/19-politique-semver-api.md §19.1.
+
+  coverage:
+    name: Couverture de tests (seuil 95%)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: engine
+      - name: Installer cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Mesurer la couverture (échoue sous 95%)
+        working-directory: engine
+        run: cargo llvm-cov --workspace --fail-under-lines 95 --summary-only
+        # Seuil de sortie de Phase 1 (docs/design/16-phase1-validation-report.md
+        # §20.7) : 97.99% mesuré au tag v1.0.0-scientific-core. Ce job
+        # empêche toute régression de couverture en dessous de 95%.

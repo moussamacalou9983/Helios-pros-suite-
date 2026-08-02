@@ -1,0 +1,48 @@
+# HeliosPro -- couverture de tests (cargo llvm-cov --workspace --summary-only)
+# Regenerer avec : rustup component add llvm-tools-preview && cargo install cargo-llvm-cov
+#                  puis, depuis engine/ : cargo llvm-cov --workspace --summary-only
+# Non regenere automatiquement par `cargo test` (cargo-llvm-cov n'est pas une
+# dependance du workspace, seulement un outil de developpement installe a la
+# demande -- coherent avec la politique "zero dependance" du moteur lui-meme).
+
+Filename                                           Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+core_constants/src/lib.rs                               18                 0   100.00%           4                 0   100.00%          13                 0   100.00%           0                 0         -
+core_math/src/interpolation.rs                          94                 0   100.00%           8                 0   100.00%          50                 0   100.00%           0                 0         -
+core_math/src/julian.rs                                105                 4    96.19%           9                 0   100.00%         108                 3    97.22%           0                 0         -
+core_math/src/stats.rs                                 184                 2    98.91%          21                 0   100.00%          97                 2    97.94%           0                 0         -
+core_units/src/angle.rs                                115                 3    97.39%          20                 1    95.00%          81                 3    96.30%           0                 0         -
+core_units/src/irradiance.rs                            34                 0   100.00%           7                 0   100.00%          25                 0   100.00%           0                 0         -
+core_units/src/length.rs                                18                 3    83.33%           5                 1    80.00%          16                 3    81.25%           0                 0         -
+core_units/src/pressure.rs                              20                 0   100.00%           5                 0   100.00%          17                 0   100.00%           0                 0         -
+core_units/src/ratio.rs                                 27                 0   100.00%           5                 0   100.00%          19                 0   100.00%           0                 0         -
+core_units/src/temperature.rs                           26                 0   100.00%           6                 0   100.00%          21                 0   100.00%           0                 0         -
+core_units/src/velocity.rs                              12                 0   100.00%           3                 0   100.00%          10                 0   100.00%           0                 0         -
+irradiance/src/decomposition.rs                        147                 0   100.00%           8                 0   100.00%          83                 0   100.00%           0                 0         -
+irradiance/src/extraterrestrial.rs                     133                 2    98.50%           9                 0   100.00%          87                 2    97.70%           0                 0         -
+simulation/src/balance.rs                              207                 5    97.58%           7                 0   100.00%         186                 2    98.92%           0                 0         -
+solar_geometry/src/delta_t.rs                           22                 0   100.00%           3                 0   100.00%          13                 0   100.00%           0                 0         -
+solar_geometry/src/incidence.rs                         75                 8    89.33%           5                 0   100.00%          58                 2    96.55%           0                 0         -
+solar_geometry/src/meeus.rs                            280                 6    97.86%          11                 0   100.00%         185                 3    98.38%           0                 0         -
+solar_geometry/src/spa/mod.rs                          318                 5    98.43%           6                 0   100.00%         165                 3    98.18%           0                 0         -
+solar_geometry/src/spa/precision_experiment.rs          48                 0   100.00%           5                 0   100.00%          37                 0   100.00%           0                 0         -
+solar_geometry/src/time.rs                             123                 3    97.56%          11                 0   100.00%         129                 0   100.00%           0                 0         -
+solar_position/src/algorithm.rs                         63                 0   100.00%           8                 0   100.00%          56                 0   100.00%           0                 0         -
+solar_position/src/common.rs                             3                 0   100.00%           1                 0   100.00%           6                 0   100.00%           0                 0         -
+solar_position/src/lib.rs                               34                 0   100.00%           2                 0   100.00%          28                 0   100.00%           0                 0         -
+solar_position/src/meeus.rs                            292                13    95.55%          14                 0   100.00%         196                 6    96.94%           0                 0         -
+solar_position/src/spa.rs                              290                10    96.55%           8                 0   100.00%         218                 4    98.17%           0                 0         -
+thermal_model/src/noct.rs                               62                 2    96.77%           5                 0   100.00%          38                 1    97.37%           0                 0         -
+thermal_model/src/sandia.rs                            145                 0   100.00%           9                 0   100.00%          82                 0   100.00%           0                 0         -
+transposition/src/hay_davies.rs                        142                 3    97.89%           8                 0   100.00%          78                 2    97.44%           0                 0         -
+transposition/src/hdkr.rs                              144                 2    98.61%           6                 0   100.00%          75                 1    98.67%           0                 0         -
+transposition/src/inputs.rs                             37                 0   100.00%           3                 0   100.00%          27                 0   100.00%           0                 0         -
+transposition/src/isotropic.rs                         118                 2    98.31%           6                 0   100.00%          73                 1    98.63%           0                 0         -
+transposition/src/perez.rs                             229                 3    98.69%          14                 0   100.00%         127                 2    98.43%           0                 0         -
+validation/src/dataset/mod.rs                           27                 0   100.00%           3                 0   100.00%          13                 0   100.00%           0                 0         -
+validation/src/global_campaign/dataset.rs              160                 4    97.50%           9                 1    88.89%          79                 3    96.20%           0                 0         -
+validation/src/global_campaign/mod.rs                  465                12    97.42%          30                 1    96.67%         368                15    95.92%           0                 0         -
+validation/src/lib.rs                                   80                 4    95.00%           4                 2    50.00%          52                 4    92.31%           0                 0         -
+validation/src/report.rs                               306                 1    99.67%          13                 0   100.00%         211                 1    99.53%           0                 0         -
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TOTAL                                                 4603                97    97.89%         301                 6    98.01%        3127                63    97.99%           0                 0         -
