@@ -4,7 +4,7 @@ Genere par `validation::integration_tests::generate_and_write_global_campaign_re
 
 ## Resume (toutes categories confondues)
 
-### SPA (Reda & Andreas, 2004) — 2918 cas, 7.2 µs/cas (total 21.06 ms)
+### SPA (Reda & Andreas, 2004) — 2918 cas, 7.4 µs/cas (total 21.50 ms)
 
 | Grandeur | Biais moyen | Erreur abs. moyenne | RMSE | Erreur abs. max | Cas (max) |
 |---|---|---|---|---|---|
@@ -17,7 +17,7 @@ Genere par `validation::integration_tests::generate_and_write_global_campaign_re
 | Azimuth | 0.000000 deg | 0.000000 deg | 0.000000 deg | 0.000000 deg | random_1334 |
 | Earth radius vector | 0.000000 AU | 0.000000 AU | 0.000000 AU | 0.000000 AU | century_1900_01 |
 
-### Meeus (1998, reduced order) — 2918 cas, 0.8 µs/cas (total 2.29 ms)
+### Meeus (1998, reduced order) — 2918 cas, 0.8 µs/cas (total 2.40 ms)
 
 | Grandeur | Biais moyen | Erreur abs. moyenne | RMSE | Erreur abs. max | Cas (max) |
 |---|---|---|---|---|---|

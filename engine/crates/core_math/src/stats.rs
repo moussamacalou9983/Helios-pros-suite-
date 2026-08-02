@@ -10,6 +10,23 @@ pub fn mean(values: &[f64]) -> f64 {
     values.iter().sum::<f64>() / values.len() as f64
 }
 
+/// Sample standard deviation of a slice (Bessel's correction, divisor
+/// `n - 1`): the usual choice when `values` is itself a sample used to
+/// estimate the variability of a larger population of possible
+/// measurements (e.g. per-call timing samples from a benchmark run), as
+/// opposed to the population standard deviation (divisor `n`) used when
+/// `values` *is* the entire population of interest. Returns `f64::NAN` for
+/// a slice of fewer than 2 values (sample standard deviation is undefined
+/// for `n < 2`: dividing by `n - 1 = 0`).
+pub fn standard_deviation(values: &[f64]) -> f64 {
+    if values.len() < 2 {
+        return f64::NAN;
+    }
+    let m = mean(values);
+    let sum_sq_dev: f64 = values.iter().map(|v| (v - m).powi(2)).sum();
+    (sum_sq_dev / (values.len() - 1) as f64).sqrt()
+}
+
 /// Mean bias error: the mean of `(computed - reference)`, preserving sign.
 /// A systematic model bias shows up as a non-zero value here even when the
 /// scatter (RMSE) is small.
@@ -81,6 +98,26 @@ mod tests {
     #[test]
     fn mean_of_simple_series() {
         assert!((mean(&[1.0, 2.0, 3.0]) - 2.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn standard_deviation_of_a_known_series() {
+        // [2, 4, 4, 4, 5, 5, 7, 9]: textbook example, sample std dev = 2.13809...
+        // (Wikipedia "Standard deviation", worked example).
+        let values = [2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0];
+        let sd = standard_deviation(&values);
+        assert!((sd - 2.138_089_935_299_395).abs() < 1e-12, "sd = {sd}");
+    }
+
+    #[test]
+    fn standard_deviation_of_identical_values_is_zero() {
+        assert!((standard_deviation(&[5.0, 5.0, 5.0]) - 0.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn standard_deviation_is_nan_below_two_samples() {
+        assert!(standard_deviation(&[]).is_nan());
+        assert!(standard_deviation(&[1.0]).is_nan());
     }
 
     #[test]

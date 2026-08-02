@@ -104,18 +104,44 @@ engine never requires network access or a Python interpreter.
 
 ## Scientific validation
 
-`cargo test -p validation` runs both engines against 91 independently
-computed reference cases (pvlib-python 0.15.2) and asserts documented
-accuracy budgets; it also regenerates
-`validation-data/latest_validation_report.md`, a full per-quantity error
-report (mean bias, mean absolute error, RMSE, maximum absolute error,
-timing) for both engines. As of the current implementation, SPA agrees
-with pvlib to within 0.0002° across every angular quantity checked
-(zenith, azimuth, elevation, hour angle, declination, right ascension)
-and to machine precision on the Earth radius vector — see that report for
-exact figures and `docs/design/16-phase1-validation-report.md` for the
-full methodology, including what remains unvalidated (irradiance/
-transposition/thermal layers have no external reference comparison yet).
+`cargo test -p validation` runs both engines against two independent
+pvlib-python 0.15.2 reference datasets and asserts documented accuracy
+budgets:
+
+- **91 hand-picked cases** (`dataset`) spanning representative sites/dates
+  — regenerates `validation-data/latest_validation_report.md`. SPA agrees
+  with pvlib to within 0.0002° across every angular quantity checked
+  (zenith, azimuth, elevation, hour angle, declination, right ascension)
+  and to machine precision on the Earth radius vector.
+- **~2900-case global campaign** (`global_campaign`) stratified across the
+  full latitude (-90..90°) / longitude (-180..180°) / altitude (0-6000 m) /
+  year (1900-2100) envelope, plus explicit polar day/night, sunrise/
+  sunset-sweep, subsolar, and century/leap-year categories — regenerates
+  `validation-data/latest_global_campaign_report.md`. Every computed
+  quantity is asserted finite across the full sweep for both engines (the
+  numerical-stability guarantee); two genuine near-singularity effects the
+  full envelope surfaces (a near-horizon refraction-cutoff divergence
+  between the two engines, and an azimuth coordinate singularity at zenith
+  transit) are documented and bounded rather than hidden — see that
+  module's doc comment
+  (`engine/crates/validation/src/global_campaign/mod.rs`).
+
+`cargo test -p tests` additionally exercises
+`tests/numerical_stability.rs` (deliberately degenerate synthetic edge
+cases: the geographic poles, years 1582-9999, angles at/near 0/90/180°,
+UTC midnight/day-boundary crossings — no accuracy claim, only a
+finite-output/no-panic claim) and `tests/benchmarks.rs` (wall-clock timing
+mean/standard deviation and heap-allocation count/bytes for both engines,
+via a small counting `#[global_allocator]`; regenerates
+`validation-data/latest_benchmark_report.md` — both engines currently
+measure **zero heap allocations** in steady state).
+
+See `docs/design/16-phase1-validation-report.md` for the full methodology
+(including what remains unvalidated: irradiance/transposition/thermal
+layers have no external reference comparison yet) and
+`docs/design/17-analyse-incertitude-numerique.md` for the numerical
+uncertainty analysis (rounding, `f32` vs `f64`, sensitivity to
+astronomical constants) underlying these accuracy budgets.
 
 ## Extending the engine: architecture for future modules
 
@@ -157,7 +183,10 @@ added as new crates without modifying the scientific core built so far:
 
 - Design-phase documents: `../docs/design/`
 - Phase 1 validation report: `../docs/design/16-phase1-validation-report.md`
+- Numerical uncertainty analysis: `../docs/design/17-analyse-incertitude-numerique.md`
 - Validation dataset provenance: `validation-data/README.md`
-- Latest automated validation report: `validation-data/latest_validation_report.md`
+- Latest automated validation reports: `validation-data/latest_validation_report.md`,
+  `validation-data/latest_global_campaign_report.md`,
+  `validation-data/latest_benchmark_report.md`
 - API documentation: generate with `cargo doc` (every public item is
   documented with a citation to its source, per project rules)
