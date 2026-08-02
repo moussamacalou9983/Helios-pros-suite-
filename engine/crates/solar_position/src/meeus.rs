@@ -102,6 +102,32 @@ pub fn solar_position(
 ) -> Result<SolarPosition, JulianDayError> {
     let jd_ut = datetime_utc.to_julian_day()?;
     let delta_t_seconds = delta_t::estimate_delta_t_seconds(datetime_utc.year, datetime_utc.month);
+    Ok(solar_position_precise(
+        jd_ut,
+        delta_t_seconds,
+        observer,
+        atmosphere,
+    ))
+}
+
+/// As [`solar_position`], but with `delta_t` specified explicitly instead
+/// of estimated from the calendar year/month, and taking a UT-based Julian
+/// Day directly rather than calendar fields (so this function is a pure,
+/// infallible, deterministic function of its arguments — there is no
+/// calendar validation left to perform). Used to compare this engine
+/// against external reference data across a wide historical span (e.g.
+/// 1900-2100): [`delta_t::estimate_delta_t_seconds`] is only documented as
+/// valid for 2005-2050, so validation campaigns covering a wider year
+/// range must supply a known/reference `delta_t` directly rather than rely
+/// on that estimator's extrapolation. Mirrors
+/// `solar_position::spa::solar_position_precise`, which exists for the
+/// same reason and has the same signature shape.
+pub fn solar_position_precise(
+    jd_ut: f64,
+    delta_t_seconds: f64,
+    observer: Observer,
+    atmosphere: AtmosphericConditions,
+) -> SolarPosition {
     let jde = jd_ut + delta_t_seconds / core_constants::SECONDS_PER_DAY;
 
     let eph = meeus_geometry::compute(jde, jd_ut);
@@ -118,7 +144,7 @@ pub fn solar_position(
 
     let ninety = Angle::from_degrees(90.0);
 
-    Ok(SolarPosition {
+    SolarPosition {
         zenith_true: ninety - elevation_true,
         zenith_apparent: ninety - elevation_apparent,
         elevation_true,
@@ -129,7 +155,7 @@ pub fn solar_position(
         hour_angle,
         earth_sun_distance_au: eph.earth_sun_distance_au,
         equation_of_time_minutes: eph.equation_of_time_minutes,
-    })
+    }
 }
 
 #[cfg(test)]

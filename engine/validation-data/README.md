@@ -19,6 +19,77 @@ independent implementation of the NREL Solar Position Algorithm.
   `engine/crates/validation/src/lib.rs`) every time the test suite runs.
   This file is *not* hand-maintained — do not edit it directly; edit the
   engine code or the dataset generator instead and re-run the tests.
+- `generate_global_campaign.py` — generator for the much larger **global
+  validation campaign** dataset (below). Uses the same pvlib step-by-step
+  pipeline as `generate_pvlib_reference_dataset.py`, with a fixed random
+  seed (`20260802`) for reproducibility.
+- `global_campaign_dataset.csv` — ~2900 generated test cases (raw output
+  of the script above), committed so the dataset can be inspected or
+  reprocessed without needing Python/pvlib installed. Embedded directly
+  into the `validation` crate via `include_str!` and parsed at first use
+  by a small hand-rolled parser (`validation::global_campaign::dataset`) —
+  CSV rather than a generated Rust array at this scale, to avoid an
+  unwieldy multi-megabyte source file; see that module's doc comment for
+  the full rationale.
+- `latest_global_campaign_report.md` — **generated automatically** by
+  `cargo test -p validation` (the
+  `integration_tests::generate_and_write_global_campaign_report` test),
+  same non-hand-maintained rule as `latest_validation_report.md` above.
+
+## The global validation campaign: validating the scientific model, not only the code
+
+`pvlib_reference_dataset.json` (91 cases, above) checks that HeliosPro's
+SPA implementation reproduces an independent oracle on a small,
+hand-picked sample of representative sites and dates. `global_campaign_dataset.csv`
+goes further: it is a **~2900-case stratified sweep of the entire input
+envelope** the engine is specified to support —
+
+- latitude -90° to +90°, longitude -180° to +180°, altitude 0-6000 m
+  (ISO 2533:1975 standard-atmosphere pressure at each altitude)
+- years 1900-2100, including the Gregorian centennial leap-year exception
+  (1900 and 2100 are *not* leap years; 2000 *is*, divisible by 400)
+- explicit edge categories: extreme latitude/longitude/altitude, century
+  years, leap years, near-midnight UTC (Julian Day rollover), polar day,
+  polar night, sunrise/sunset sweeps (5 sites x 2 dates x 48 half-hour
+  samples), and subsolar/near-zenith cases
+
+so that the campaign exercises the *scientific model itself* — including
+the conditions where a solar-position algorithm is hardest to get right
+(grazing-horizon refraction, near-zenith azimuth, polar geometry) — rather
+than only the code paths a small sample happens to touch.
+
+`delta_t` (TT - UT1) is specified exactly per case (matching what pvlib
+was given) rather than estimated from the calendar date, because
+`core_math`'s own delta_t estimator (Espenak & Meeus, 2006) is documented
+as valid only for 2005-2050 and this campaign deliberately spans
+1900-2100; using the estimator here would conflate delta_t-estimation
+error with solar-position-algorithm error. Both `solar_position::spa` and
+`solar_position::meeus` expose explicit-delta_t `solar_position_precise`
+entry points for exactly this reason.
+
+**"Changements d'heure" (DST) and "fuseaux horaires" (time zones)**:
+HeliosPro's solar-position engines are, by explicit architectural
+decision, functions of UTC calendar fields only — civil time zone
+handling and DST transitions are an application-layer concern (convert to
+UTC before calling the engine), not part of the scientific core. A civil
+time zone is mathematically equivalent, for a fixed UTC instant and
+geographic location, to a longitude offset plus a constant hour shift;
+there is no separate "time zone" input this engine could take that would
+change its output. This campaign represents that requested coverage
+through its full longitude sweep (every UTC offset a civil zone could
+correspond to) and its `near_midnight_utc` category (which exercises the
+UTC day-boundary arithmetic a naive civil-time implementation would get
+wrong), rather than by simulating civil calendars with DST rules —
+simulating those would test application-layer logic this engine
+intentionally does not contain. See
+`engine/crates/validation/src/global_campaign/mod.rs`'s module doc for
+the same note in context, and its "genuine, documented near-horizon
+divergence" and "zenith singularity" sections for two real,
+evidence-bounded edge effects this campaign surfaced (differing
+refraction-cutoff conventions between the two engines near the horizon;
+the azimuth formula's coordinate singularity at zenith transit) — neither
+is a coding defect, and both are explained and bounded rather than
+hidden behind a loosened threshold.
 
 ## How the dataset was produced
 
@@ -104,7 +175,16 @@ python3 generate_pvlib_reference_dataset.py
 python3 generate_rust_dataset.py
 # writes ../crates/validation/src/dataset/generated_dataset.rs directly.
 
-# 4. Re-run the full test suite, including the validation campaign, which
-#    also regenerates latest_validation_report.md.
+# 4. Regenerate the global validation campaign dataset (requires pvlib
+#    installed, same as step 2; fixed random seed, so re-running is
+#    reproducible).
+python3 generate_global_campaign.py
+# writes global_campaign_dataset.csv in this directory -- no separate
+# Rust-generation step needed, it is embedded via include_str! and parsed
+# at first use by validation::global_campaign::dataset.
+
+# 5. Re-run the full test suite, including both validation campaigns,
+#    which also regenerates latest_validation_report.md and
+#    latest_global_campaign_report.md.
 cd ../.. && cargo test --workspace
 ```
