@@ -15,8 +15,15 @@
 //! side effect of an unrelated refactor. This is standard practice for a
 //! scientific engine (see `docs/design/14-strategie-tests.md`, "golden
 //! datasets") and is distinct from validating the engine against *external*
-//! reference software or measurements, which is the job of the (currently
-//! unimplemented, scaffolding-only) `validation` crate.
+//! reference software or measurements, which is the job of the `validation`
+//! crate.
+//!
+//! `tests/numerical_stability.rs` is a third, distinct kind of check again:
+//! neither a regression baseline nor an external-accuracy comparison, but a
+//! guarantee that the solar-position engines never produce `NaN`/`+-inf`
+//! or panic at deliberately degenerate inputs (the geographic poles, years
+//! far outside any claimed accuracy window, angles at/near 0/90/180
+//! degrees, UTC midnight/day-boundary crossings).
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
