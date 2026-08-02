@@ -1,0 +1,16 @@
+[package]
+name = "solar_geometry"
+description = "Solar time, geocentric ephemeris (declination, right ascension, Earth-Sun distance, apparent sidereal time, equation of time), and angle of incidence on an oriented surface for the HeliosPro scientific engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_constants = { path = "../core_constants" }
+core_units = { path = "../core_units" }
+core_math = { path = "../core_math" }
+
+[lints]
+workspace = true

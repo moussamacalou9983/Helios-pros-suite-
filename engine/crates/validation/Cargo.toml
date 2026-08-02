@@ -1,0 +1,14 @@
+[package]
+name = "validation"
+description = "External validation framework: reference datasets and automated error reporting against NREL SPA, pvlib, SAM, PVsyst, and published measurements (planned; not yet implemented in this session)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_math = { path = "../core_math" }
+
+[lints]
+workspace = true

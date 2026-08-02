@@ -2,23 +2,53 @@
 
 **Statut** : Phase 1 implémentée, testée, documentée. Voir `engine/` pour le code.
 
+> **Mise à jour (session 2)** : le workspace a été restructuré pour adopter
+> la nomenclature exacte des 14 crates spécifiée dans le brief détaillé de
+> phase 1 (édition Rust 2024, `core_units`/`core_math`/`core_constants`,
+> scission de l'ancien `heliospro-solar` en `solar_geometry` +
+> `solar_position`, scission de l'ancien `heliospro-transposition` en
+> `irradiance` + `transposition`, `heliospro-thermal` → `thermal_model`,
+> `heliospro-energy-balance` → `simulation`), sans perte du travail déjà
+> validé — tous les tests existants ont été déplacés et continuent de
+> passer. Cinq nouveaux crates de périmètre futur (`pv_module`,
+> `electrical_model`, `losses`, `validation`, `tests`) ont été ajoutés au
+> workspace ; quatre sont des squelettes documentés (aucune logique, aucune
+> revendication scientifique, statut « scaffolding » explicite dans leur
+> `lib.rs`) et un (`tests`) contient déjà des tests de non-régression
+> croisés (« golden dataset ») exerçant les crates livrées. Voir
+> `engine/README.md` pour la carte complète et le statut à jour de chaque
+> crate.
+
 ## 16.1 Périmètre livré
 
-7 crates Rust, workspace `engine/`, zéro dépendance externe (uniquement la
-bibliothèque standard Rust), **111 tests unitaires**, **0 avertissement**
-`cargo build` / `cargo clippy`, compilation en profils `dev` et `release`
-validée.
+14 crates Rust au total dans le workspace `engine/` (9 avec logique
+implémentée, 5 squelettes documentés), zéro dépendance externe (uniquement
+la bibliothèque standard Rust), **114 tests unitaires/d'intégration**,
+**0 avertissement** `cargo build` / `cargo clippy` / `cargo fmt --check`,
+compilation en profils `dev` et `release` validée, édition Rust 2024.
 
-| Crate | Rôle | Tests |
-|---|---|---|
-| `heliospro-constants` | Constantes physiques référencées | 4 |
-| `heliospro-units` | Unités SI (types forts) | 17 |
-| `heliospro-math` | Jour julien, interpolation, statistiques d'erreur | 17 |
-| `heliospro-solar` | Temps solaire, position solaire, incidence, extraterrestre, décomposition | 40 |
-| `heliospro-transposition` | Isotrope, Hay-Davies, HDKR, Perez | 18 |
-| `heliospro-thermal` | NOCT, Sandia | 10 |
-| `heliospro-energy-balance` | Orchestration complète | 5 |
-| **Total** | | **111** |
+| Crate | Rôle | Statut | Tests |
+|---|---|---|---|
+| `core_constants` | Constantes physiques référencées | Implémenté | 4 |
+| `core_units` | Unités SI (types forts) | Implémenté | 17 |
+| `core_math` | Jour julien, interpolation, statistiques d'erreur | Implémenté | 17 |
+| `solar_geometry` | Temps solaire, éphéméride géocentrique, angle d'incidence | Implémenté | 21 |
+| `solar_position` | Position topocentrique du soleil (classe SPA) | Implémenté | 9 |
+| `irradiance` | Irradiation extraterrestre, décomposition GHI/DNI/DHI | Implémenté | 10 |
+| `transposition` | Isotrope, Hay-Davies, HDKR, Perez | Implémenté | 18 |
+| `pv_module` | Modèle de données fiche technique module PV | Squelette | 0 |
+| `thermal_model` | NOCT, Sandia | Implémenté | 10 |
+| `electrical_model` | Modèle électrique à diode unique | Squelette | 0 |
+| `losses` | Modèles de pertes systématiques | Squelette | 0 |
+| `simulation` | Orchestration (bilan énergétique) | Implémenté (partiel*) | 5 |
+| `validation` | Comparaison externe SPA/pvlib/SAM/PVsyst | Squelette | 0 |
+| `tests` | Tests de non-régression croisés | Implémenté | 3 |
+| **Total** | | | **114** |
+
+\* `simulation` calcule la chaîne complète position solaire → irradiance sur
+plan incliné → température de cellule (le périmètre du brief Phase 1
+initial), mais n'appelle pas encore `electrical_model`/`losses` pour
+produire une puissance DC/AC — étape prévue une fois ces crates livrées.
 
 Aucune interface graphique, aucune base de données, aucun accès réseau ou
 disque — conformément au périmètre imposé pour cette phase.
@@ -58,7 +88,7 @@ citées explicitement par Meeus (1998), *Astronomical Algorithms*, 2nd ed.** :
 
 Cette décision, ses justifications complètes, ses références bibliographiques
 et le chemin de mise à niveau vers la table complète sont documentés dans le
-code source (`engine/crates/heliospro-solar/src/lib.rs`, ADR-004) — pas
+code source (`engine/crates/solar_geometry/src/lib.rs`, ADR-004) — pas
 seulement dans ce rapport.
 
 **Précision résultante estimée** : ~0.01-0.02° en zénith/azimut, contre

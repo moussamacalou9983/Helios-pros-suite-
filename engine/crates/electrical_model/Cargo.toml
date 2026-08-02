@@ -1,0 +1,17 @@
+[package]
+name = "electrical_model"
+description = "PV single-diode electrical model (planned; not yet implemented in this session)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_constants = { path = "../core_constants" }
+core_units = { path = "../core_units" }
+core_math = { path = "../core_math" }
+pv_module = { path = "../pv_module" }
+
+[lints]
+workspace = true

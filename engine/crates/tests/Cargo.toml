@@ -1,0 +1,22 @@
+[package]
+name = "tests"
+description = "Cross-crate regression and integration tests for the HeliosPro scientific engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+
+[dev-dependencies]
+core_math = { path = "../core_math" }
+core_units = { path = "../core_units" }
+solar_geometry = { path = "../solar_geometry" }
+solar_position = { path = "../solar_position" }
+thermal_model = { path = "../thermal_model" }
+simulation = { path = "../simulation" }
+
+[lints]
+workspace = true

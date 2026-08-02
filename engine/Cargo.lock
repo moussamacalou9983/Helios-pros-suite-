@@ -3,50 +3,115 @@
 version = 4
 
 [[package]]
-name = "heliospro-constants"
+name = "core_constants"
 version = "0.1.0"
 
 [[package]]
-name = "heliospro-energy-balance"
+name = "core_math"
+version = "0.1.0"
+
+[[package]]
+name = "core_units"
+version = "0.1.0"
+
+[[package]]
+name = "electrical_model"
 version = "0.1.0"
 dependencies = [
- "heliospro-constants",
- "heliospro-math",
- "heliospro-solar",
- "heliospro-thermal",
- "heliospro-transposition",
- "heliospro-units",
+ "core_constants",
+ "core_math",
+ "core_units",
+ "pv_module",
 ]
 
 [[package]]
-name = "heliospro-math"
-version = "0.1.0"
-
-[[package]]
-name = "heliospro-solar"
+name = "irradiance"
 version = "0.1.0"
 dependencies = [
- "heliospro-constants",
- "heliospro-math",
- "heliospro-units",
+ "core_constants",
+ "core_math",
+ "core_units",
+ "solar_geometry",
 ]
 
 [[package]]
-name = "heliospro-thermal"
+name = "losses"
 version = "0.1.0"
 dependencies = [
- "heliospro-units",
+ "core_units",
 ]
 
 [[package]]
-name = "heliospro-transposition"
+name = "pv_module"
 version = "0.1.0"
 dependencies = [
- "heliospro-constants",
- "heliospro-solar",
- "heliospro-units",
+ "core_units",
 ]
 
 [[package]]
-name = "heliospro-units"
+name = "simulation"
 version = "0.1.0"
+dependencies = [
+ "core_constants",
+ "core_math",
+ "core_units",
+ "irradiance",
+ "solar_geometry",
+ "solar_position",
+ "thermal_model",
+ "transposition",
+]
+
+[[package]]
+name = "solar_geometry"
+version = "0.1.0"
+dependencies = [
+ "core_constants",
+ "core_math",
+ "core_units",
+]
+
+[[package]]
+name = "solar_position"
+version = "0.1.0"
+dependencies = [
+ "core_constants",
+ "core_math",
+ "core_units",
+ "solar_geometry",
+]
+
+[[package]]
+name = "tests"
+version = "0.1.0"
+dependencies = [
+ "core_math",
+ "core_units",
+ "simulation",
+ "solar_geometry",
+ "solar_position",
+ "thermal_model",
+]
+
+[[package]]
+name = "thermal_model"
+version = "0.1.0"
+dependencies = [
+ "core_units",
+]
+
+[[package]]
+name = "transposition"
+version = "0.1.0"
+dependencies = [
+ "core_constants",
+ "core_units",
+ "solar_geometry",
+]
+
+[[package]]
+name = "validation"
+version = "0.1.0"
+dependencies = [
+ "core_math",
+]

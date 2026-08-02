@@ -1,0 +1,14 @@
+[package]
+name = "thermal_model"
+description = "PV cell temperature models (NOCT, Sandia/SAPM) for the HeliosPro scientific engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_units = { path = "../core_units" }
+
+[lints]
+workspace = true
