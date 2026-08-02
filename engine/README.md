@@ -185,6 +185,7 @@ added as new crates without modifying the scientific core built so far:
 - Phase 1 validation report: `../docs/design/16-phase1-validation-report.md`
 - Numerical uncertainty analysis: `../docs/design/17-analyse-incertitude-numerique.md`
 - Technical annex (algorithms, equations, proofs, diagrams, references): `../docs/design/18-annexe-technique-position-solaire.md`
+- Public API audit and SemVer policy: `../docs/design/19-politique-semver-api.md`
 - Validation dataset provenance: `validation-data/README.md`
 - Latest automated validation reports: `validation-data/latest_validation_report.md`,
   `validation-data/latest_global_campaign_report.md`,
