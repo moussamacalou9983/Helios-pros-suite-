@@ -244,8 +244,19 @@ décoratif : il est nécessaire à la justesse du calcul.**
 |---|---|---|
 | `length`, `width`, `depth` | `Length` | Calepinage, charge au vent, encombrement |
 | `mass` | `Mass` (nouveau type) | Contrainte de charge de toiture ; logistique |
-| `gross_area` | `Area` (nouveau type) | Surface hors-tout = `length × width` — **stockée**, pas recalculée, car certaines fiches donnent une surface qui n'est pas exactement le produit (arrondis, bords) |
+| `gross_area` | `Area` (nouveau type) | ~~Surface hors-tout = `length × width` — **stockée**, pas recalculée~~ — **position révisée**, voir l'encadré ci-dessous |
 | `aperture_area` | `Option<Area>` | Surface active réelle ; base du rendement d'ouverture, distinct du rendement hors-tout |
+
+> **Révision (ADR-0005, Décision 2)** : la position ci-dessus — stocker
+> `gross_area` — a été **abandonnée** lors de la spécification détaillée.
+> Stocker `length`, `width` *et* `gross_area` crée trois champs dont deux
+> déterminent le troisième, rendant une incohérence représentable sans
+> règle d'arbitrage — la situation « deux sources de vérité » que ce même
+> document refuse pourtant pour la courbe P-V (§2.11). La position
+> retenue est : `gross_area` **dérivé** de `length × width`, valeur
+> affichée conservée séparément sous `stated_gross_area` pour recoupement
+> uniquement. Même traitement pour `efficiency`. Voir
+> `docs/design/25-specification-pv-module.md` §3.4.
 
 Le rendement **n'est pas** stocké ici mais dans `StcParameters` (§2.5),
 car il est défini à une condition de mesure donnée.
