@@ -2,7 +2,7 @@
 
 Genere par `validation::integration_tests::generate_and_write_full_validation_report` a partir de 91 cas de reference (voir `engine/validation-data/README.md`).
 
-### SPA (Reda & Andreas, 2004, NREL/TP-560-34302) -- primary engine — 91 cas, 4.4 µs/cas (total 0.40 ms)
+### SPA (Reda & Andreas, 2004, NREL/TP-560-34302) -- primary engine — 91 cas, 4.1 µs/cas (total 0.37 ms)
 
 | Grandeur | Biais moyen | Erreur abs. moyenne | RMSE | Erreur abs. max | Cas (max) |
 |---|---|---|---|---|---|
@@ -15,7 +15,7 @@ Genere par `validation::integration_tests::generate_and_write_full_validation_re
 | Right ascension (geocentric) | 0.000059 deg | 0.000060 deg | 0.000060 deg | 0.000070 deg | paris_20241221_1600 |
 | Earth radius vector | -0.000000 AU | 0.000000 AU | 0.000000 AU | 0.000000 AU | paris_20240922_1600 |
 
-### Meeus reduced-order (Astronomical Algorithms, 1998) -- secondary validation engine — 91 cas, 0.6 µs/cas (total 0.06 ms)
+### Meeus reduced-order (Astronomical Algorithms, 1998) -- secondary validation engine — 91 cas, 0.5 µs/cas (total 0.05 ms)
 
 | Grandeur | Biais moyen | Erreur abs. moyenne | RMSE | Erreur abs. max | Cas (max) |
 |---|---|---|---|---|---|
