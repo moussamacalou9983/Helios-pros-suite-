@@ -4,11 +4,11 @@ Genere par `tests::benchmarks::generate_and_write_benchmark_report` (`cargo test
 
 | Mesure | SPA | Meeus (reduit) |
 |---|---|---|
-| Temps total (8760 appels) | 34.53 ms | 3.91 ms |
-| Temps moyen par appel | 4.044 us | 0.468 us |
-| Ecart-type par appel | 1.406 us | 0.367 us |
-| Minimum / maximum par appel | 3.467 / 43.042 us | 0.374 / 17.009 us |
+| Temps total (8760 appels) | 49.11 ms | 4.90 ms |
+| Temps moyen par appel | 5.331 us | 0.592 us |
+| Ecart-type par appel | 2.352 us | 0.712 us |
+| Minimum / maximum par appel | 4.729 / 69.138 us | 0.474 / 36.505 us |
 | Appels allocateur (8760 positions) | 0 | 0 |
 | Octets alloues (8760 positions) | 0 | 0 |
 
-Ratio de temps moyen SPA/Meeus : 8.65x.
+Ratio de temps moyen SPA/Meeus : 9.00x.

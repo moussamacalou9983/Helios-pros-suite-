@@ -11,6 +11,7 @@ Gabarit pour tout nouvel ADR : `docs/adr/0000-template.md`.
 | [0001](0001-spa-primary-engine.md) | SPA (Reda & Andreas 2004) comme moteur de position solaire primaire | Accepté | Nouvel algorithme |
 | [0002](0002-zero-external-dependencies.md) | Zéro dépendance externe hors bibliothèque standard pour le moteur | Accepté | Nouvelle dépendance |
 | [0003](0003-utc-only-time-architecture.md) | Le moteur travaille exclusivement en temps UTC | Accepté | Nouvelle architecture |
+| [0004](0004-pv-module-architecture.md) | Architecture du crate `pv_module` | **Proposé** | Nouvelle architecture + Modification d'API publique |
 
 Les ADR 0001-0003 sont **rétroactifs** : ils documentent des décisions
 déjà prises et mises en œuvre pendant la Phase 1, rédigés au moment de la
