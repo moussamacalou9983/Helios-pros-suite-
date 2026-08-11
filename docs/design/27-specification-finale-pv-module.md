@@ -731,12 +731,24 @@ statut UNKNOWN).
 | `INV-STR-001` | `cell_division = Half` ⇒ `cells_in_parallel` pair | W | Topologie usuelle des demi-cellules |
 | `INV-STR-002` | `bypass_diodes ≤ substrings` | W | |
 | `INV-STR-003` | `additional_outputs` non vide ⇒ technologie `Tandem` | W | Autre cas non connu à ce jour |
+| `INV-STR-004` | Matériau couche mince ⇒ configuration `Monolithic` | W | Ajouté à l'implémentation — ADR-0007 |
 | `INV-PRV-001` | Classe A/B/E indéterminable (provenance absente) | W | Valeur utilisable, autorité inconnue |
 | `INV-PRV-002` | Classe E (estimée) sans justification | E | Exigence du principe de transparence |
 | `INV-PRV-003` | Paramètre ajusté (F) présenté comme mesuré (B) | E | §4.4 |
 
-**Total : 47 invariants nommés.** Chacun produit un `ValidationFinding`
+**Total : 52 invariants nommés.** Chacun produit un `ValidationFinding`
 avec explication obligatoire (§3.2).
+
+> **Correction du décompte (2026-08-11).** La rédaction initiale de cette
+> section annonçait « 47 invariants nommés » alors que ses propres tableaux
+> en énuméraient **51**. Le chiffre 47 était une erreur de comptage, jamais
+> une omission de règles : aucun invariant n'a été retiré. L'implémentation
+> a par ailleurs ajouté `INV-STR-004`, portant le total à **52**. Le
+> décompte fait désormais foi dans le code, où la constante
+> `pv_module::validation::invariants::ALL_INVARIANT_IDS` est l'inventaire
+> de référence ; le test `the_invariant_inventory_is_complete_and_free_of_duplicates`
+> vérifie qu'elle reste sans doublon et que chaque famille conserve son
+> effectif. Voir `docs/adr/0007-invariant-inventory.md`.
 
 ---
 
@@ -989,7 +1001,7 @@ graph TD
 |---|---|---|
 | 1 | Spécification finale | Ce document |
 | 2 | Modèle de données | §4, §5, §6, §8, §10, §13.1 |
-| 3 | Règles de validation | §11 (47 invariants) |
+| 3 | Règles de validation | §11 (52 invariants — voir la correction de décompte) |
 | 4 | Stratégie de provenance | §2 |
 | 5 | Gestion des conflits | §3 |
 | 6 | Architecture des adaptateurs | §12 |

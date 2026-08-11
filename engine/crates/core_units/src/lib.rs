@@ -26,17 +26,31 @@
 #![warn(missing_docs)]
 
 mod angle;
+mod area;
+mod current;
 mod irradiance;
 mod length;
+mod mass;
+mod power;
 mod pressure;
 mod ratio;
 mod temperature;
+mod temperature_coefficient;
 mod velocity;
+mod voltage;
+mod wavelength;
 
 pub use angle::Angle;
+pub use area::Area;
+pub use current::Current;
 pub use irradiance::Irradiance;
 pub use length::Length;
+pub use mass::Mass;
+pub use power::Power;
 pub use pressure::Pressure;
 pub use ratio::Ratio;
 pub use temperature::Temperature;
+pub use temperature_coefficient::{CoefficientBasis, TemperatureCoefficient};
 pub use velocity::Velocity;
+pub use voltage::Voltage;
+pub use wavelength::Wavelength;

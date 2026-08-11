@@ -1,6 +1,6 @@
 [package]
 name = "pv_module"
-description = "PV module datasheet domain model (planned; not yet implemented in this session)"
+description = "Typed, validated and traceable domain model of a photovoltaic module"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

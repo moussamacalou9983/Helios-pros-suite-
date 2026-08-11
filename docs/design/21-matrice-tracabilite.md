@@ -103,41 +103,44 @@ exigence n'est laissée sans trace.
 
 ## C. Exigences de conception `pv_module` (Phase 2 — conception)
 
-Exigences issues des briefs de conception successifs de `pv_module`.
-**Aucune n'est encore couverte par du code** : le crate demeure un
-squelette à zéro élément public. La colonne « Tests » désigne le test
-*planifié* (`docs/design/28-plan-tests-pv-module.md`), pas un test
-existant.
+Exigences issues des briefs de conception successifs de `pv_module`,
+**mises à jour après l'implémentation du 11 août 2026**. La colonne
+« Implémentation » désigne le code livré ; la colonne « Tests » désigne
+des tests **existants et passants**, nommés d'après l'exigence ou
+l'invariant qu'ils couvrent.
 
-| ID | Exigence | Spécification | Tests planifiés | Documentation |
-|---|---|---|---|---|
-| PVM-001 | Architecture interne : responsabilités, interfaces, dépendances autorisées/interdites | doc 24 §1, doc 27 §13.3 | T6.1, T6.2, T6.3 | ADR-0004 |
-| PVM-002 | Modèle de données justifié champ par champ | doc 25 §10, doc 27 §4-§10 | T1, T4 | doc 25, doc 27 |
-| PVM-003 | Compatibilité fabricants sans modification d'architecture | doc 25 §1.3, §3 | T4.9, T4.10 | doc 25 |
-| PVM-004 | Compatibilité bases de données (CEC, Sandia, PAN, CSV, JSON, IEC 61853) | doc 25 §6, doc 26, doc 27 §12 | T4.1–T4.8 | doc 26 |
-| PVM-005 | Validation scientifique : définition, unité, mesure, référence par champ | doc 25 §10 | — (documentaire) | doc 25 §10 |
-| PVM-006 | Extensibilité (TOPCon, HJT, IBC, CdTe, CIGS, tandem, pérovskite, bifacial, flexible) | doc 25 §5, doc 27 §7.3 | T1.6, T4.10 | ADR-0004 D-3 |
-| PVM-007 | Diagrammes UML, dépendances, flux | doc 24 §7, doc 25 §9, doc 27 §13 | — | doc 27 §13 |
-| PVM-008 | Classification épistémique A–H des données | doc 27 §1 | T5.2, T5.4 | ADR-0006 D-2 |
-| PVM-009 | Provenance par valeur (9 champs) | doc 27 §2 | T5.1, T5.3, T5.6 | ADR-0006 D-1 |
-| PVM-010 | Système formel de conflits (VALID/WARNING/CONFLICT/INVALID/UNKNOWN) | doc 27 §3 | T2.12, T3.1–T3.6 | ADR-0006 D-3, D-4 |
-| PVM-011 | **Aucun arbitrage silencieux d'une donnée en conflit** | doc 27 §3.3 | **T3.1–T3.6** | ADR-0006 D-4 |
-| PVM-012 | Séparation stricte données physiques / paramètres de modèle | doc 27 §4 | T4.8, T2.10 | ADR-0004 D-4 |
-| PVM-013 | Conditions de référence distinctes et abstraction générique | doc 27 §5 | T1.5, T2.8, T4.6 | ADR-0006 D-5 |
-| PVM-014 | Bifacialité structurée, modèles arrière exclus du module | doc 27 §6 | T2.9, T4.4 | ADR-0006 D-6 |
-| PVM-015 | Technologie descriptive, jamais prescriptive | doc 27 §7 | **T6.4** | ADR-0006 D-7 |
-| PVM-016 | Cinq surfaces distinctes, aucune identifiée à une autre | doc 27 §8 | T2.4, T2.5, T3.6 | ADR-0006 D-6 |
-| PVM-017 | Politique d'unités : SI interne strict, conversion à l'entrée | doc 27 §9 | T1.1, T1.2, T6.5, T4.3 | ADR-0004 D-2 |
-| PVM-018 | Incertitude associable à une donnée (GUM) | doc 27 §10 | T1.3, T1.4 | ADR-0006 D-1 |
-| PVM-019 | Invariants de validation physique avec niveaux | doc 27 §11 (47 invariants) | **T2.1–T2.12** | doc 27 §11 |
-| PVM-020 | Architecture des adaptateurs, modèle interne indépendant des sources | doc 27 §12 | T4, T6.1 | ADR-0004 D-5 |
-| PVM-021 | Plan de tests | — | doc 28 | doc 28 |
-| PVM-022 | Aucun code métier durant la phase de conception | — | T6.3 | doc 27 §15 |
+| ID | Exigence | Spécification | Implémentation | Tests | Documentation |
+|---|---|---|---|---|---|
+| PVM-001 | Architecture interne : responsabilités, interfaces, dépendances autorisées/interdites | doc 24 §1, doc 27 §13.3 | `lib.rs`, découpage en 13 modules | compilation, `cargo doc` | ADR-0004 |
+| PVM-002 | Modèle de données justifié champ par champ | doc 25 §10, doc 27 §4-§10 | `identity.rs`, `technology.rs`, `geometry.rs`, `configuration.rs`, `electrical.rs`, `thermal.rs`, `condition.rs`, `bifacial.rs` | 88 tests unitaires | doc 25, doc 27 |
+| PVM-003 | Compatibilité fabricants sans modification d'architecture | doc 25 §1.3, §3 | `MountingForm`, `PowerTolerance`, `CellDivision` | `a_flexible_module_carries_a_bend_radius…`, `both_forms_of_production_tolerance…` | doc 25 |
+| PVM-004 | Compatibilité bases de données (CEC, Sandia, PAN, CSV, JSON, IEC 61853) | doc 25 §6, doc 26, doc 27 §12 | `adapters.rs` (interfaces), `ADAPTER_CATALOGUE` | `the_catalogue_names_the_five_specified_sources`, `the_pan_adapter_is_blocked…`, `a_record_shaped_like_a_cec_row…` | doc 26 |
+| PVM-005 | Validation scientifique : définition, unité, mesure, référence par champ | doc 25 §10 | documentation `///` de chaque champ | `cargo doc` sans avertissement | doc 25 §10 |
+| PVM-006 | Extensibilité (TOPCon, HJT, IBC, CdTe, CIGS, tandem, pérovskite, bifacial, flexible) | doc 25 §5, doc 27 §7.3 | `CellTechnology` récursif, `#[non_exhaustive]` | `tandem_nests_recursively`, `a_tandem_of_tandems_is_representable`, `a_thin_film_module_is_describable…` | ADR-0004 D-3 |
+| PVM-007 | Diagrammes UML, dépendances, flux | doc 24 §7, doc 25 §9, doc 27 §13 | — | — | doc 27 §13 |
+| PVM-008 | Classification épistémique A–H des données | doc 27 §1 | `provenance/classification.rs` | `codes_match_the_specification_letters`, `one_quantity_classifies_differently…` | ADR-0006 D-2 |
+| PVM-009 | Provenance par valeur (9 champs) | doc 27 §2 | `provenance/source.rs`, `provenance/measurement.rs` | `the_full_provenance_trail_survives_construction`, `inv_prv_001_…` | ADR-0006 D-1 |
+| PVM-010 | Système formel de conflits (VALID/WARNING/CONFLICT/INVALID/UNKNOWN) | doc 27 §3 | `validation/status.rs`, `validation/issue.rs` | `severity_orders_from_valid_to_invalid`, `only_conflicts_are_resolvable` | ADR-0006 D-3, D-4 |
+| PVM-011 | **Aucun arbitrage silencieux d'une donnée en conflit** | doc 27 §3.3 | `validation/conflict.rs`, `PvModuleBuilder::build` | **`a_conflict_blocks_and_names_both_candidates`, `a_recorded_decision_lifts_the_conflict…`, `an_anonymous_decision_is_not_representable`, `every_conflict_needs_its_own_decision`** | ADR-0006 D-4 |
+| PVM-012 | Séparation stricte données physiques / paramètres de modèle | doc 27 §4 | `INV-PRV-003` | `inv_prv_003_a_fitted_parameter_never_occupies_a_physical_field` | ADR-0004 D-4 |
+| PVM-013 | Conditions de référence distinctes et abstraction générique | doc 27 §5 | `condition.rs`, `TemperatureSpecification` | `a_cell_temperature_is_never_comparable_to_an_ambient_one`, `ptc_shares_stc_irradiance_but_not_its_temperature_kind` | ADR-0006 D-5 |
+| PVM-014 | Bifacialité structurée, modèles arrière exclus du module | doc 27 §6 | `bifacial.rs` | `inv_bif_001_…` à `inv_bif_004_…`, `the_advertised_bifacial_gain_is_recorded_but_structurally_unusable` | ADR-0006 D-6 |
+| PVM-015 | Technologie descriptive, jamais prescriptive | doc 27 §7 | `technology.rs` — aucun branchement physique | `technology_and_architecture_are_independent`, `unknown_is_distinct_from_other` | ADR-0006 D-7 |
+| PVM-016 | Cinq surfaces distinctes, aucune identifiée à une autre | doc 27 §8 | `geometry.rs`, `preferred_area_for_efficiency` | `rectangular_area_and_gross_area_are_separate_quantities`, `the_efficiency_invariants_name_the_area_they_used`, `inv_geo_002_…` | ADR-0006 D-6 |
+| PVM-017 | Politique d'unités : SI interne strict, conversion à l'entrée | doc 27 §9 | `core_units` étendu (7 types), aucun `f64` nu à la frontière | `units_convert_once_at_the_boundary…`, `a_current_measured_in_milliamperes…` | ADR-0004 D-2 |
+| PVM-018 | Incertitude associable à une donnée (GUM) | doc 27 §10 | `Uncertainty`, `Measurement<T>` | `expanded_uncertainty_divides_by_its_coverage_factor`, `an_uncertainty_reports_its_magnitude_and_its_form` | ADR-0006 D-1 |
+| PVM-019 | Invariants de validation physique avec niveaux | doc 27 §11 (**52** invariants) | `validation/invariants.rs` | **`tests/invariants.rs` — 56 tests, ≥ 3 cas par invariant** | doc 27 §11, ADR-0007 |
+| PVM-020 | Architecture des adaptateurs, modèle interne indépendant des sources | doc 27 §12 | `adapters.rs` — interfaces seules | `an_import_records_the_adapter_and_its_version…`, `a_missing_mandatory_field_yields_no_module_and_no_placeholder` | ADR-0004 D-5 |
+| PVM-021 | Plan de tests | — | 175 tests | `cargo test --workspace` | doc 28 |
+| PVM-022 | Aucun code métier durant la phase de conception | — | **Levée** : la conception est close, l'implémentation autorisée le 11/08/2026 | — | doc 27 §15 |
+| PVM-023 | Inventaire des invariants vérifiable mécaniquement + `INV-STR-004` | ADR-0007 | `ALL_INVARIANT_IDS` (52), `is_known_invariant` | `the_invariant_inventory_is_complete_and_free_of_duplicates`, `every_family_is_represented_in_the_inventory`, `inv_str_004_…` | ADR-0007 |
 
-**Bilan Partie C** : 22/22 exigences de conception spécifiées et reliées
-à un test planifié ou à un contrôle documentaire. **0/22 implémentées** —
-état attendu et conforme : l'implémentation est conditionnée à une
-validation explicite.
+**Bilan Partie C** : 23 exigences, dont **21 implémentées et testées**,
+1 documentaire sans code attendu (PVM-007, diagrammes) et 1 levée par la
+clôture de la phase de conception (PVM-022).
+
+Couverture mesurée du crate `pv_module` : **99,51 % des régions,
+99,61 % des lignes, 100 % des fonctions** (`cargo llvm-cov`).
 
 Trois exigences restent **ouvertes** et sont suivies comme telles :
 
