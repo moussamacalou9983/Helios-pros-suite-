@@ -265,6 +265,18 @@ pour trancher. La solution correcte est :
 Le même raisonnement s'applique à `efficiency`, traité identiquement.
 Cette révision est consignée dans ADR-0005, Décision 2.
 
+> **Correction (document 26 §1)** : la validation sur la base CEC réelle
+> a montré que **29 modules sur 19 954** présentent un écart supérieur à
+> 10 % entre surface affichée et `L × l`, jusqu'à un facteur 2 — et que
+> dans ces cas c'est la **valeur dérivée qui est fausse**, les dimensions
+> étant erronées dans la base. Faire de `L × l` l'autorité silencieuse
+> aurait donc produit un rendement faux d'un facteur 2 sans aucun signal.
+>
+> Le contrôle de cohérence devient donc **bloquant** au-delà de **1 %** :
+> la construction échoue en nommant les deux valeurs en conflit, et
+> **n'arbitre pas**. Voir `docs/design/26-validation-empirique-cec-sandia.md`
+> §1.4.
+
 ---
 
 ## 4. Structures de données internes
@@ -437,9 +449,15 @@ validation de format.
 
 ### 4.8 Blocs optionnels de caractérisation
 
+> **Corrections issues du document 26** : `kind` reçoit une variante
+> `PtcPvusa` (condition PVUSA, renseignée sur les 21 535 modules CEC,
+> §2.3) ; `bifaciality_factor` devient `Option<Ratio>` (le CEC fournit un
+> drapeau bifacial sans φ, §2.2) ; `ModuleIdentity` reçoit
+> `building_integrated: Option<bool>` (drapeau BIPV, §2.5).
+
 ```
 BifacialCharacteristics {
-    bifaciality_factor: Ratio,                  // φ ∈ [0,1] — Ratio convient
+    bifaciality_factor: Option<Ratio>,          // φ ∈ [0,1] ; None = bifacial non caractérisé
     rear_p_max: Option<Power>,
     rear_v_oc:  Option<Voltage>,
     rear_i_sc:  Option<Current>,
@@ -1005,7 +1023,9 @@ spectre AM1.5G — IEC 60904-3 (spectre), IEC 61215 (conditions).
 
 | Champ | Type | Unité | Nature | Justification scientifique | Référence |
 |---|---|---|---|---|---|
-| `bifacial.bifaciality_factor` | `Ratio` | — | Opt (bloc) | φ = rendement arrière / rendement avant | IEC TS 60904-1-2 |
+| `bifacial.bifaciality_factor` | `Option<Ratio>` | — | Opt (bloc) | φ = rendement arrière / rendement avant. `Option` car le CEC signale la bifacialité sans fournir φ (doc 26 §2.2) | IEC TS 60904-1-2 |
+| `identity.building_integrated` | `Option<bool>` | — | Opt | Drapeau BIPV ; `Option` distingue « non renseigné » de « non intégré » (doc 26 §2.5) | Base CEC |
+| `ptc.cell_temperature` *(variante `PtcPvusa`)* | `Temperature` | K | Opt | Condition PVUSA : 1000 W/m², 20 °C **ambiant**, vent 1 m/s — distincte des STC ; référence du marché nord-américain (doc 26 §2.3) | Base CEC |
 | `bifacial.rear_p_max` | `Option<Power>` | W | Opt | Certaines fiches donnent les grandeurs arrière plutôt que φ | IEC TS 60904-1-2 |
 | `bifacial.rear_v_oc` | `Option<Voltage>` | V | Opt | Idem | IEC TS 60904-1-2 |
 | `bifacial.rear_i_sc` | `Option<Current>` | A | Opt | Idem | IEC TS 60904-1-2 |
