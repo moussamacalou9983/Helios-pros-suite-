@@ -100,3 +100,49 @@ couvertes/dépassées (ENF-001, ENF-009), 2 partiellement couvertes (EF-005,
 ENF-003), 1 en squelette prêt (EF-004), 28 explicitement hors périmètre
 avec renvoi vers la phase de la feuille de route qui les traitera. Aucune
 exigence n'est laissée sans trace.
+
+## C. Exigences de conception `pv_module` (Phase 2 — conception)
+
+Exigences issues des briefs de conception successifs de `pv_module`.
+**Aucune n'est encore couverte par du code** : le crate demeure un
+squelette à zéro élément public. La colonne « Tests » désigne le test
+*planifié* (`docs/design/28-plan-tests-pv-module.md`), pas un test
+existant.
+
+| ID | Exigence | Spécification | Tests planifiés | Documentation |
+|---|---|---|---|---|
+| PVM-001 | Architecture interne : responsabilités, interfaces, dépendances autorisées/interdites | doc 24 §1, doc 27 §13.3 | T6.1, T6.2, T6.3 | ADR-0004 |
+| PVM-002 | Modèle de données justifié champ par champ | doc 25 §10, doc 27 §4-§10 | T1, T4 | doc 25, doc 27 |
+| PVM-003 | Compatibilité fabricants sans modification d'architecture | doc 25 §1.3, §3 | T4.9, T4.10 | doc 25 |
+| PVM-004 | Compatibilité bases de données (CEC, Sandia, PAN, CSV, JSON, IEC 61853) | doc 25 §6, doc 26, doc 27 §12 | T4.1–T4.8 | doc 26 |
+| PVM-005 | Validation scientifique : définition, unité, mesure, référence par champ | doc 25 §10 | — (documentaire) | doc 25 §10 |
+| PVM-006 | Extensibilité (TOPCon, HJT, IBC, CdTe, CIGS, tandem, pérovskite, bifacial, flexible) | doc 25 §5, doc 27 §7.3 | T1.6, T4.10 | ADR-0004 D-3 |
+| PVM-007 | Diagrammes UML, dépendances, flux | doc 24 §7, doc 25 §9, doc 27 §13 | — | doc 27 §13 |
+| PVM-008 | Classification épistémique A–H des données | doc 27 §1 | T5.2, T5.4 | ADR-0006 D-2 |
+| PVM-009 | Provenance par valeur (9 champs) | doc 27 §2 | T5.1, T5.3, T5.6 | ADR-0006 D-1 |
+| PVM-010 | Système formel de conflits (VALID/WARNING/CONFLICT/INVALID/UNKNOWN) | doc 27 §3 | T2.12, T3.1–T3.6 | ADR-0006 D-3, D-4 |
+| PVM-011 | **Aucun arbitrage silencieux d'une donnée en conflit** | doc 27 §3.3 | **T3.1–T3.6** | ADR-0006 D-4 |
+| PVM-012 | Séparation stricte données physiques / paramètres de modèle | doc 27 §4 | T4.8, T2.10 | ADR-0004 D-4 |
+| PVM-013 | Conditions de référence distinctes et abstraction générique | doc 27 §5 | T1.5, T2.8, T4.6 | ADR-0006 D-5 |
+| PVM-014 | Bifacialité structurée, modèles arrière exclus du module | doc 27 §6 | T2.9, T4.4 | ADR-0006 D-6 |
+| PVM-015 | Technologie descriptive, jamais prescriptive | doc 27 §7 | **T6.4** | ADR-0006 D-7 |
+| PVM-016 | Cinq surfaces distinctes, aucune identifiée à une autre | doc 27 §8 | T2.4, T2.5, T3.6 | ADR-0006 D-6 |
+| PVM-017 | Politique d'unités : SI interne strict, conversion à l'entrée | doc 27 §9 | T1.1, T1.2, T6.5, T4.3 | ADR-0004 D-2 |
+| PVM-018 | Incertitude associable à une donnée (GUM) | doc 27 §10 | T1.3, T1.4 | ADR-0006 D-1 |
+| PVM-019 | Invariants de validation physique avec niveaux | doc 27 §11 (47 invariants) | **T2.1–T2.12** | doc 27 §11 |
+| PVM-020 | Architecture des adaptateurs, modèle interne indépendant des sources | doc 27 §12 | T4, T6.1 | ADR-0004 D-5 |
+| PVM-021 | Plan de tests | — | doc 28 | doc 28 |
+| PVM-022 | Aucun code métier durant la phase de conception | — | T6.3 | doc 27 §15 |
+
+**Bilan Partie C** : 22/22 exigences de conception spécifiées et reliées
+à un test planifié ou à un contrôle documentaire. **0/22 implémentées** —
+état attendu et conforme : l'implémentation est conditionnée à une
+validation explicite.
+
+Trois exigences restent **ouvertes** et sont suivies comme telles :
+
+| Exigence | Point ouvert | Suivi |
+|---|---|---|
+| PVM-003 | Validation sur ≥ 5 fiches techniques réelles — pas d'accès réseau aux PDF constructeurs | doc 28, T4.9 |
+| PVM-004 | Grille exacte IEC 61853-1 — lecture du texte normatif requise | doc 27 §12.3 |
+| PVM-004 | `PANAdapter` — statut juridique du format à vérifier | doc 27 §12.4 |

@@ -12,7 +12,8 @@ Gabarit pour tout nouvel ADR : `docs/adr/0000-template.md`.
 | [0002](0002-zero-external-dependencies.md) | Zéro dépendance externe hors bibliothèque standard pour le moteur | Accepté | Nouvelle dépendance |
 | [0003](0003-utc-only-time-architecture.md) | Le moteur travaille exclusivement en temps UTC | Accepté | Nouvelle architecture |
 | [0004](0004-pv-module-architecture.md) | Architecture du crate `pv_module` | **Proposé** | Nouvelle architecture + Modification d'API publique |
-| [0005](0005-pv-module-data-model.md) | Modèle de données et incertitudes de `pv_module` | **Proposé** | Nouvelle architecture (modèle de données) |
+| [0005](0005-pv-module-data-model.md) | Modèle de données et incertitudes de `pv_module` | **Proposé** — D-3 remplacée par ADR-0006 | Nouvelle architecture (modèle de données) |
+| [0006](0006-measurement-provenance-conflicts.md) | Porteur de valeur, provenance et gestion formelle des conflits | **Proposé** | Nouvelle architecture (modèle de données) |
 
 Les ADR 0001-0003 sont **rétroactifs** : ils documentent des décisions
 déjà prises et mises en œuvre pendant la Phase 1, rédigés au moment de la
