@@ -260,6 +260,43 @@ L'audit (doc 34) a **invalidé deux garanties** annoncées par l'ADR-0009 et
 | ELM-061 | **22 jeux de tests** scientifiques préparés, ≥ 3 scénarios chacun | doc 34 §16 | E1–E5 | doc 34 §16 |
 | ELM-062 | Purge des formulations absolues non prouvées | doc 34 §17 | — (revue documentaire) | ADR-0010 |
 
+### Formalisation mathématique (2026-08-12) — ADR-0011
+
+Aucun renversement — c'est en soi un résultat : les corrections de
+l'ADR-0010 ont tenu à la formalisation complète. Une **simplification
+structurelle** non prévue a en revanche été trouvée.
+
+| ID | Exigence | Spécification | Tests planifiés | Documentation |
+|---|---|---|---|---|
+| ELM-063 | Équation single-diode formalisée : 11 symboles définis, conventions de signe | doc 35 §1 | PB-01 | ADR-0011 |
+| ELM-064 | Analyse dimensionnelle terme à terme, `[∂f/∂I] = 1`, `[∂f/∂V] = Ω⁻¹` | doc 35 §1.4, §2.2, §2.4 | PB-16, E7.6 | ADR-0011 |
+| ELM-065 | Dérivées `∂f/∂I`, `∂²f/∂I²`, `∂f/∂V` **calculées analytiquement** | doc 35 §2.2–§2.4 | PB-16 | ADR-0011 |
+| ELM-066 | Existence + unicité de `I(V)` démontrées, bornes `[0, I_ph+I_0]` | doc 35 §3 | PB-01, PB-03 | ADR-0011 |
+| ELM-067 | `I(V) ∈ C^∞` par le théorème des fonctions implicites | doc 35 §3.5 | PB-02, PB-04 | ADR-0011 |
+| ELM-068 | **Invariant d'intervalle** de Newton : `I_k ∈ [I*, I_ph]` depuis `I₀=0` | doc 35 §4.4 | PB-17 | ADR-0011 |
+| ELM-069 | Conditions d'arrêt **et de sortie** de Newton énumérées | doc 35 §4.5 | PB-15 | ADR-0011 |
+| ELM-070 | `|I−I*| ≤ |f(I)|` démontrée **et** vérifiée dimensionnellement | doc 35 §5.1, §5.2 | PB-14 | ADR-0011 |
+| ELM-071 | Repli spécifié : `I_low`, `I_high`, signe, réduction, arrêt | doc 35 §6.2 | PB-15 | ADR-0011 |
+| ELM-072 | **Borne 82 démontrée**, garanties réelles de Brent documentées séparément | doc 35 §6.1, §6.3 | PB-15 | ADR-0011 |
+| ELM-073 | Garde anti-débordement : seuil **imposé par IEEE 754**, non choisi | doc 35 §7.2 | PB-05, PB-18 | ADR-0011 D-6 |
+| ELM-074 | Sous-flux démontré non dangereux | doc 35 §7.6 | PB-05, PB-12 | ADR-0011 |
+| ELM-075 | `R_s = 0` : forme fermée démontrée + **inspection exhaustive** — aucune division par `R_s` | doc 35 §8 | PB-10 | ADR-0011 D-7 |
+| ELM-076 | Unicité du MPP : **6 étapes démontrées séparément** | doc 35 §9.4 | PB-07, PB-08, PB-20..22 | ADR-0011 |
+| ELM-077 | Domaine de validité du MPP : 7 hypothèses, rôle de chacune | doc 35 §10.1 | PB-18 | ADR-0011 D-5 |
+| ELM-078 | **`dP/dV_j` explicite — la recherche du MPP n'appelle jamais le solveur** | doc 35 §11.2 | PB-07, PB-09 | **ADR-0011 D-1** |
+| ELM-079 | Différentiation numérique **rejetée par calcul** (plafond `√ε`) | doc 35 §11.1 | PB-09 | ADR-0011 D-4 |
+| ELM-080 | Algorithme MPP spécifié de bout en bout, 6 règles | doc 35 §12 | PB-07..09 | ADR-0011 |
+| ELM-081 | **35 propriétés prouvées → 35 invariants logiciels nommés** | doc 36 §3 | PB-01..22 | ADR-0011 D-2 |
+| ELM-082 | **15 observations numériques, aucune promue en théorème** | doc 36 §4 | — | ADR-0011 D-3 |
+| ELM-083 | 15 hypothèses : 9 vérifiables (refus), 6 de modélisation (déclarées) | doc 36 §2 | PB-18 | ADR-0011 D-5 |
+| ELM-084 | 8 validations empiriques requises, **aucune acquise** | doc 36 §5 | E9, E10 | ADR-0011 |
+| ELM-085 | Protocole : 4 natures de validation distinguées, 7 familles | doc 36 §6 | A–G | ADR-0011 |
+| ELM-086 | **22 tests de propriétés** définis, domaine de génération spécifié | doc 36 §7 | PB-01..22 | ADR-0011 |
+
+**Bilan Partie D après formalisation** : **86 exigences, 0 implémentée**.
+35 propriétés prouvées, 35 invariants logiciels, 22 tests de propriétés,
+15 observations non promues, 8 validations empiriques en attente.
+
 **Bilan Partie D après audit** : 62 exigences, **0 implémentée**. Deux
 garanties excessives retirées, une propriété gagnée, deux corrections.
 

@@ -209,6 +209,25 @@ plutôt que masquées par un desserrage de tolérance.
 
 ---
 
+## 11bis. E12 — Tests de propriétés (property-based)
+
+**22 propriétés** génératives sont définies dans
+`docs/design/36-statut-epistemique-electrical-model.md` §7, dont **17
+traduisent directement une propriété prouvée** de la doc 35.
+
+Le domaine de génération est `𝓗` (§7.1 de la doc 36) ; un second
+générateur tire **hors `𝓗`** pour vérifier le refus.
+
+> Un test de propriété peut **réfuter** une propriété prouvée — révélant
+> une erreur de démonstration ou d'implémentation. Il ne peut pas la
+> démontrer. `PB-08`, qui vérifie l'unicité du MPP, illustre le point : un
+> échec n'infirmerait pas la propriété mais la preuve ou le code.
+
+La graine de génération est publiée avec chaque exécution, pour que tout
+échec soit reproductible.
+
+---
+
 ## 12bis. Jeux de tests scientifiques — préparés
 
 Les **22 jeux de paramètres** exigés avant implémentation sont définis
