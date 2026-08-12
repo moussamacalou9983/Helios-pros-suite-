@@ -155,3 +155,66 @@ Trois exigences restent **ouvertes** et sont suivies comme telles :
 | PVM-003 | Validation sur ≥ 5 fiches techniques réelles — pas d'accès réseau aux PDF constructeurs | doc 28, T4.9 |
 | PVM-004 | Grille exacte IEC 61853-1 — lecture du texte normatif requise | doc 27 §12.3 |
 | PVM-004 | `PANAdapter` — statut juridique du format à vérifier | doc 27 §12.4 |
+
+---
+
+## Partie D — Exigences de conception d'`electrical_model`
+
+Exigences issues du brief de conception d'`electrical_model`
+(11 août 2026). **Aucune n'est couverte par du code** : le crate demeure
+le squelette livré en Phase 1, et l'implémentation est conditionnée à une
+validation explicite. La colonne « Tests » désigne le test **planifié**
+(`docs/design/31-plan-tests-electrical-model.md`), pas un test existant.
+
+| ID | Exigence | Spécification | Tests planifiés | Documentation |
+|---|---|---|---|---|
+| ELM-001 | Objectif du moteur : I-V, P-V, `V_oc`, `I_sc`, `V_mp`, `I_mp`, `P_max`, MPP, hors STC | doc 30 §1.1 | E1, E2, E3 | doc 30 |
+| ELM-002 | Chaîne données → paramètres → modèle → I-V → P-V → MPP | doc 30 §2 | E4, E8 | doc 30 §2 |
+| ELM-003 | Comparaison argumentée des modèles avant décision | doc 30 §5 | — (documentaire) | doc 30 §5 |
+| ELM-004 | **Aucun modèle unique pour toutes les données** | doc 30 §5.3, §9.3 | E6.2, E7.1 | ADR-0008 D-1 |
+| ELM-005 | Équation à diode unique complète, sept grandeurs définies | doc 30 §4.1, §4.2 | E1, E2 | doc 30 §4 |
+| ELM-006 | Méthodes d'identification des paramètres distinguées | doc 30 §7.2 | E6, E8.2 | ADR-0008 D-3 |
+| ELM-007 | Comparaison Lambert W / Newton / Brent avant choix | doc 30 §8.2–§8.4 | E1.6, E3.4, E3.5 | ADR-0008 D-4 |
+| ELM-008 | **Jamais confondre données constructeur et paramètres de modèle** | doc 30 §3 | **E7.1, E7.3, E8.1, E8.4** | ADR-0008 D-3 |
+| ELM-009 | Paramètres portant classification, provenance, méthode, incertitude, modèle | doc 30 §3.2 | E8.1–E8.5 | ADR-0008 D-3 |
+| ELM-010 | Compatibilité CEC / Sandia / De Soto / IEC 61853 établie | doc 30 §9 | E9.1, E9.2 | doc 26, doc 30 §9 |
+| ELM-011 | Matrice modèle × données requises × disponibles × manquantes × méthode | doc 30 §9.2 | E6.5 | doc 30 §9.2 |
+| ELM-012 | Tolérances, convergence, itérations, non-convergence définies avant implémentation | doc 30 §8.1, §8.7 | E3.1–E3.3 | ADR-0008 D-5 |
+| ELM-013 | **Aucune boucle numérique sans critère de convergence formel** | doc 30 §8.1 | **E3.2, E3.3** | ADR-0008 D-5 |
+| ELM-014 | 14 cas limites spécifiés avant codage | doc 30 §10 | E5.1–E5.14 | doc 30 §10 |
+| ELM-015 | Stratégie de validation indépendante à cinq niveaux | doc 30 §11.2 | E1, E2, E4, E9, E10 | doc 30 §11 |
+| ELM-016 | **Une implémentation de référence n'est jamais une preuve de vérité** | doc 30 §11.1 | **E10.2** | doc 30 §11.1 |
+| ELM-017 | SI strict à l'intérieur, conversions aux frontières | doc 30 §12 | E7.6 | doc 30 §12 |
+| ELM-018 | Architecture ouverte aux extensions futures sans modification | doc 30 §13.4 | E7.4, E7.5 | ADR-0008 |
+| ELM-019 | Diagrammes UML | doc 30 §2, §13.1, §13.2 | — | doc 30 §13 |
+| ELM-020 | Plan de tests | — | doc 31 | doc 31 |
+| ELM-021 | **Aucun code de calcul durant la phase de conception** | — | E7.4 | doc 30 §14 |
+| ELM-022 | **SAPM ne produit pas de courbe continue — séparation structurelle** | doc 30 §5.6 | **E7.2** (`compile_fail`) | ADR-0008 D-2 |
+| ELM-023 | Monotonie du résidu démontrée, encadrement garanti | doc 30 §4.5 | E3.4, E3.5 | ADR-0008 D-4 |
+| ELM-024 | ≥ 3 scénarios par règle et par cas limite, mesurés et protégés par la CI | doc 31 §0 | E5, doc 31 §12 | doc 29 §6.0 |
+
+**Bilan Partie D** : 24 exigences de conception spécifiées et reliées à un
+test planifié ou à un contrôle documentaire. **0/24 implémentées** — état
+attendu et conforme : l'implémentation est conditionnée à une validation
+explicite.
+
+Sept décisions restent **ouvertes** et sont suivies comme telles
+(doc 30 §15) :
+
+| Décision | Point ouvert | Tranchée par |
+|---|---|---|
+| D-1 | Méthode numérique définitive | ADR-0008, après mesure |
+| D-2 | Type propre pour `a`, ou `Voltage` | ADR-0008 |
+| D-3 | Modèle par défaut si plusieurs sont applicables | ADR-0008 |
+| D-4 | Seuil d'irradiance sous lequel le SAPM est refusé | À mesurer |
+| D-5 | `E_g` et coefficient thermique pour les non-silicium | Bibliographie |
+| D-6 | PVsyst — modèle et format, traités séparément | ADR dédié |
+| D-7 | Tolérances et bornes d'itération | À mesurer |
+
+Deux points ouverts **hérités** de `pv_module` restent bloquants pour une
+validation complète, sans bloquer la conception :
+
+| Point | Suivi |
+|---|---|
+| Cinq fiches constructeurs réelles — **à ne pas simuler** | doc 31 §13 |
+| Grille exacte IEC 61853-1 — lecture du texte normatif requise | doc 30 §9.4 |
