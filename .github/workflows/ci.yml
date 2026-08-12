@@ -80,6 +80,19 @@ jobs:
         # valeur non finie (NaN/inf) apparaît sur les ~2900 cas de la
         # campagne mondiale.
 
+      - name: Traçabilité — ≥ 3 scénarios réellement exécutés par invariant
+        working-directory: engine
+        run: cargo test -p pv_module --test invariants --release -- --nocapture
+        # Échoue si un seul des 52 invariants de `pv_module` descend sous
+        # 3 scénarios exécutés, si un invariant de l'inventaire perd son
+        # test, ou si un scénario ne produit plus le résultat qu'il
+        # déclare. Le décompte porte sur les scénarios réellement joués,
+        # pas sur le nombre de fonctions `#[test]` — voir
+        # crates/pv_module/tests/scenario/mod.rs. La matrice
+        # INVARIANT | SCÉNARIOS | PASS | FAIL est écrite dans
+        # engine/validation-data/invariant-scenario-matrix.md et publiée
+        # en artefact ci-dessous.
+
       - name: Tests de stabilité numérique (cas limites)
         working-directory: engine
         run: cargo test -p tests --test numerical_stability --release -- --nocapture
@@ -100,6 +113,7 @@ jobs:
             engine/validation-data/latest_validation_report.md
             engine/validation-data/latest_global_campaign_report.md
             engine/validation-data/latest_benchmark_report.md
+            engine/validation-data/invariant-scenario-matrix.md
           if-no-files-found: warn
           retention-days: 90
 

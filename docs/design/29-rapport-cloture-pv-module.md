@@ -174,11 +174,60 @@ remis à l'adaptateur par l'appelant.
 | Cible | Tests | Objet |
 |---|---|---|
 | `pv_module` (unitaires) | 88 | Comportement de chaque type |
-| `tests/invariants.rs` | 56 | ≥ 3 cas par invariant, contrôles appelés isolément |
+| `tests/invariants.rs` | 65 | **207 scénarios** répartis sur 52 invariants, contrôles appelés isolément |
 | `tests/integration.rs` | 23 | Nominal, unités, provenance, absence, invalide, conflits, enregistrement de forme CEC |
 | `tests/api_surface.rs` | 8 | Points d'entrée publics non atteints par les précédents |
-| **Total `pv_module`** | **175** | |
-| **Workspace** | **355** | Aucune régression sur les 180 tests antérieurs |
+| **Total `pv_module`** | **184** | |
+| **Workspace** | **364** | Aucune régression sur les 180 tests antérieurs |
+
+### 6.0 Le décompte des scénarios est mesuré, pas affirmé
+
+Compter les fonctions `#[test]` ne dit rien de la profondeur d'un
+contrôle : une fonction peut vérifier trois cas ou trente, et aucun outil
+ne peut le savoir de l'extérieur. Les scénarios sont donc devenus des
+**données** : chacun nomme son invariant, décrit sa situation et déclare
+le résultat attendu **avant** exécution.
+
+Trois propriétés en découlent :
+
+1. **Le décompte est une mesure.** La matrice
+   `engine/validation-data/invariant-scenario-matrix.md` est produite par
+   la suite elle-même et donne, par invariant, le nombre de scénarios
+   réellement joués, ainsi que PASS et FAIL.
+2. **Le seuil ne peut pas régresser en silence.**
+   `every_invariant_carries_at_least_three_scenarios` échoue si un seul
+   invariant descend sous trois scénarios, et la CI exécute ce test.
+3. **Chaque invariant reste exécutable seul.** Un `#[test]` par invariant
+   est engendré, donc `cargo test inv_geo_002` joue exactement les
+   scénarios de cet invariant.
+
+Un scénario attendant le **silence** compte autant qu'un scénario
+attendant une remarque : un invariant qui se déclenche à tort est aussi
+défectueux qu'un invariant muet à tort. Sur les 207 scénarios, **106**
+attendent le silence et **101** une remarque graduée (57 INVALID,
+39 WARNING, 4 CONFLICT, 1 INFO).
+
+Le harnais lui-même est testé (six tests dédiés) : un compteur incapable
+de signaler un déficit, ou un juge qui accepte tout, transformerait le
+contrôle en décoration. Ces tests vérifient qu'un invariant à deux
+scénarios est bien détecté, qu'une remarque sans explication ou sans
+champ nommé est refusée, et qu'un scénario défaillant est compté FAIL et
+non PASS.
+
+**Résultat mesuré** : 52 invariants, **207 scénarios**, **207 PASS**,
+**0 FAIL**, **0 invariant sous le seuil**.
+
+| Scénarios par invariant | Invariants |
+|---:|---:|
+| 3 (le minimum requis) | 19 |
+| 4 | 20 |
+| 5 | 8 |
+| 6 | 5 |
+| **Total** | **52** |
+
+Aucun invariant n'a donc dû être complété : le seuil était déjà tenu
+partout, ce que cette vérification établit désormais par mesure plutôt
+que par affirmation.
 
 ### 6.1 Couverture
 
@@ -284,7 +333,30 @@ la classification A–H existe pour empêcher.
 
 ---
 
-## 11. Suite
+## 11. Gel de `pv_module`
+
+**`pv_module` est gelé au 11 août 2026**, après validation explicite de
+la sous-phase et vérification de traçabilité des scénarios.
+
+| Modification | Autorisée ? |
+|---|---|
+| Correction d'un bug critique | Oui, avec ADR si la correction change un comportement observable |
+| Ajout de logique de calcul | **Non** |
+| Ajout d'un modèle électrique | **Non** |
+| Ajout d'un modèle thermique | **Non** |
+| Ajout d'un invariant | Seulement par la procédure ADR (voir ADR-0007) |
+
+`pv_module` reste le **modèle de domaine du composant PV** : il décrit ce
+qu'est le module. Tout ce qui relève de son comportement appartient à
+`electrical_model` et aux moteurs suivants.
+
+Le gel est protégé par la CI : le seuil de trois scénarios par invariant,
+l'inventaire des 52 identifiants et la couverture ≥ 95 % échouent le
+build si une modification les entame.
+
+---
+
+## 12. Suite
 
 **Arrêt demandé.** `electrical_model` n'est pas entamé et ne le sera
 qu'après validation explicite de la présente sous-phase.

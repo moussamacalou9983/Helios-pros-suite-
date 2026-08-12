@@ -129,18 +129,24 @@ l'invariant qu'ils couvrent.
 | PVM-016 | Cinq surfaces distinctes, aucune identifiée à une autre | doc 27 §8 | `geometry.rs`, `preferred_area_for_efficiency` | `rectangular_area_and_gross_area_are_separate_quantities`, `the_efficiency_invariants_name_the_area_they_used`, `inv_geo_002_…` | ADR-0006 D-6 |
 | PVM-017 | Politique d'unités : SI interne strict, conversion à l'entrée | doc 27 §9 | `core_units` étendu (7 types), aucun `f64` nu à la frontière | `units_convert_once_at_the_boundary…`, `a_current_measured_in_milliamperes…` | ADR-0004 D-2 |
 | PVM-018 | Incertitude associable à une donnée (GUM) | doc 27 §10 | `Uncertainty`, `Measurement<T>` | `expanded_uncertainty_divides_by_its_coverage_factor`, `an_uncertainty_reports_its_magnitude_and_its_form` | ADR-0006 D-1 |
-| PVM-019 | Invariants de validation physique avec niveaux | doc 27 §11 (**52** invariants) | `validation/invariants.rs` | **`tests/invariants.rs` — 56 tests, ≥ 3 cas par invariant** | doc 27 §11, ADR-0007 |
+| PVM-019 | Invariants de validation physique avec niveaux | doc 27 §11 (**52** invariants) | `validation/invariants.rs` | **`tests/invariants.rs` — 207 scénarios exécutés, ≥ 3 par invariant** | doc 27 §11, ADR-0007 |
 | PVM-020 | Architecture des adaptateurs, modèle interne indépendant des sources | doc 27 §12 | `adapters.rs` — interfaces seules | `an_import_records_the_adapter_and_its_version…`, `a_missing_mandatory_field_yields_no_module_and_no_placeholder` | ADR-0004 D-5 |
 | PVM-021 | Plan de tests | — | 175 tests | `cargo test --workspace` | doc 28 |
 | PVM-022 | Aucun code métier durant la phase de conception | — | **Levée** : la conception est close, l'implémentation autorisée le 11/08/2026 | — | doc 27 §15 |
-| PVM-023 | Inventaire des invariants vérifiable mécaniquement + `INV-STR-004` | ADR-0007 | `ALL_INVARIANT_IDS` (52), `is_known_invariant` | `the_invariant_inventory_is_complete_and_free_of_duplicates`, `every_family_is_represented_in_the_inventory`, `inv_str_004_…` | ADR-0007 |
+| PVM-023 | Inventaire des invariants vérifiable mécaniquement + `INV-STR-004` | ADR-0007 | `ALL_INVARIANT_IDS` (52), `is_known_invariant` | `the_invariant_inventory_is_complete_and_free_of_duplicates`, `every_family_is_represented_in_the_inventory`, `inv_str_004` | ADR-0007 |
+| PVM-024 | **≥ 3 scénarios réellement exécutés par invariant, vérifié mécaniquement et protégé par la CI** | doc 29 §6.0 | `tests/scenario/mod.rs` — scénarios sous forme de données, recensement, matrice | `every_invariant_carries_at_least_three_scenarios`, `every_scenario_produces_the_outcome_it_declared`, `every_invariant_in_the_inventory_has_a_test_of_its_own`, + 6 auto-tests du harnais | doc 29 §6.0, `validation-data/invariant-scenario-matrix.md` |
 
-**Bilan Partie C** : 23 exigences, dont **21 implémentées et testées**,
+**Bilan Partie C** : 24 exigences, dont **22 implémentées et testées**,
 1 documentaire sans code attendu (PVM-007, diagrammes) et 1 levée par la
 clôture de la phase de conception (PVM-022).
 
 Couverture mesurée du crate `pv_module` : **99,51 % des régions,
 99,61 % des lignes, 100 % des fonctions** (`cargo llvm-cov`).
+
+Scénarios de validation mesurés : **207 exécutés sur 52 invariants,
+207 PASS, 0 FAIL, minimum 3 par invariant** — matrice complète dans
+`engine/validation-data/invariant-scenario-matrix.md`, régénérée à chaque
+exécution de la suite et publiée en artefact de CI.
 
 Trois exigences restent **ouvertes** et sont suivies comme telles :
 
