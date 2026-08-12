@@ -54,6 +54,38 @@ pub const STANDARD_ATMOSPHERE_PA: f64 = 101_325.0;
 /// constants (exact value under the 2019 SI redefinition).
 pub const STEFAN_BOLTZMANN_W_M2_K4: f64 = 5.670_374_419e-8;
 
+/// Boltzmann constant, J/K.
+///
+/// **Exact by definition** since the 2019 SI redefinition: the kelvin is
+/// defined by fixing this value.
+///
+/// **Source**: BIPM, *The International System of Units (SI)*, 9th edition
+/// (2019), Section 2.3.1; CODATA 2018.
+pub const BOLTZMANN_J_PER_K: f64 = 1.380_649e-23;
+
+/// Elementary charge, C.
+///
+/// **Exact by definition** since the 2019 SI redefinition: the ampere is
+/// defined by fixing this value.
+///
+/// **Source**: BIPM, *The International System of Units (SI)*, 9th edition
+/// (2019), Section 2.3.1; CODATA 2018.
+pub const ELEMENTARY_CHARGE_C: f64 = 1.602_176_634e-19;
+
+/// Boltzmann constant expressed in eV/K, equivalently the thermal voltage
+/// per kelvin in V/K.
+///
+/// **Derived, never entered separately.** Since one electronvolt is by
+/// definition [`ELEMENTARY_CHARGE_C`] joules, `k` in eV/K is numerically
+/// `k/q`, which is also the thermal voltage `kT/q` per kelvin in V/K. Two
+/// independently typed constants would eventually diverge; deriving this
+/// one makes that impossible.
+///
+/// Required by the single-diode model, where the band-gap term
+/// `(1/k)(E_g,ref/T_ref − E_g/T_c)` is dimensionless only if `k` and
+/// `E_g` share their energy unit.
+pub const BOLTZMANN_EV_PER_K: f64 = BOLTZMANN_J_PER_K / ELEMENTARY_CHARGE_C;
+
 /// Offset between the Celsius and Kelvin temperature scales (0 °C in
 /// Kelvin).
 ///
@@ -147,5 +179,25 @@ mod tests {
     #[test]
     fn astronomical_unit_matches_iau_2012_definition() {
         assert_eq!(ASTRONOMICAL_UNIT_M, 149_597_870_700.0);
+    }
+
+    #[test]
+    fn the_electronvolt_boltzmann_constant_is_derived_not_transcribed() {
+        // The point of deriving it: the identity must hold exactly, which
+        // it cannot if two constants are entered independently.
+        assert_eq!(BOLTZMANN_EV_PER_K, BOLTZMANN_J_PER_K / ELEMENTARY_CHARGE_C);
+        // Cross-check against the value quoted in the literature, to catch
+        // a transcription error in either of the two exact constants.
+        let quoted = 8.617_333_262e-5;
+        let relative = (BOLTZMANN_EV_PER_K - quoted).abs() / quoted;
+        assert!(relative < 1e-9, "relative = {relative}");
+    }
+
+    #[test]
+    fn the_thermal_voltage_at_stc_matches_the_textbook_value() {
+        // kT/q at 25 degC = 298.15 K is quoted as ~25.7 mV throughout the
+        // photovoltaics literature. An independent check on both constants.
+        let v_t = BOLTZMANN_EV_PER_K * (25.0 + CELSIUS_ZERO_KELVIN);
+        assert!((v_t - 0.025_693).abs() < 1e-6, "v_t = {v_t}");
     }
 }

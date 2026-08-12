@@ -19,6 +19,7 @@ Gabarit pour tout nouvel ADR : `docs/adr/0000-template.md`.
 | [0009](0009-electrical-model-decisions.md) | Fermeture des sept décisions ouvertes d'`electrical_model` | **Proposé** — D-4 et D-7 corrigées par ADR-0010 | Nouvelle architecture + méthode numérique |
 | [0010](0010-electrical-model-proven-guarantees.md) | Garanties mathématiques : deux retraits, une démonstration | **Proposé** | Méthode numérique — correction de garanties |
 | [0011](0011-electrical-model-formalisation.md) | Formalisation : 35 propriétés prouvées, 35 invariants logiciels | **Proposé** | Méthode numérique + spécification formelle |
+| [0012](0012-electrical-model-single-diode-kernel.md) | Implémentation du noyau Single-Diode : sept décisions et deux mesures | **Proposé** | Implémentation numérique |
 
 Les ADR 0001-0003 sont **rétroactifs** : ils documentent des décisions
 déjà prises et mises en œuvre pendant la Phase 1, rédigés au moment de la

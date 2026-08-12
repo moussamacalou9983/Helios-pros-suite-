@@ -93,6 +93,30 @@ jobs:
         # engine/validation-data/invariant-scenario-matrix.md et publiée
         # en artefact ci-dessous.
 
+      - name: Invariants logiciels — noyau Single-Diode
+        working-directory: engine
+        run: cargo test -p electrical_model --test invariants --release
+        # Un test par propriété démontrée de
+        # docs/design/35-formalisation-mathematique-electrical-model.md.
+        # Ces tests ne démontrent rien : ils vérifient que le code
+        # implémente ce que les démonstrations établissent. Un échec
+        # signifie que le code ou la démonstration est faux.
+
+      - name: Campagne de propriétés — noyau Single-Diode
+        working-directory: engine
+        run: cargo test -p electrical_model --test properties --release -- --nocapture
+        env:
+          # Campagne longue en CI : le plancher de 200 cas par propriété
+          # est protégé par la suite elle-même et ne peut pas être abaissé
+          # par cette variable, seulement relevé.
+          HELIOSPRO_PB_CASES: "5000"
+        # La graine est fixe et imprimée : tout échec est rejouable à
+        # l'identique avec HELIOSPRO_PB_SEED. La matrice PROPRIÉTÉ | CAS |
+        # ÉCHECS, et la liste des propriétés différées avec leur motif,
+        # sont écrites dans
+        # engine/validation-data/electrical-model-property-matrix.md et
+        # publiées en artefact ci-dessous.
+
       - name: Tests de stabilité numérique (cas limites)
         working-directory: engine
         run: cargo test -p tests --test numerical_stability --release -- --nocapture
@@ -114,6 +138,7 @@ jobs:
             engine/validation-data/latest_global_campaign_report.md
             engine/validation-data/latest_benchmark_report.md
             engine/validation-data/invariant-scenario-matrix.md
+            engine/validation-data/electrical-model-property-matrix.md
           if-no-files-found: warn
           retention-days: 90
 

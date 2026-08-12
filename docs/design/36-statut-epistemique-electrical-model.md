@@ -127,7 +127,7 @@ traduit.
 |---|---|---|---|
 | O-01 | `min|∂f/∂I| ∈ [1,000 ; 1,200]` | 9 jeux × 5 151 couples | Que P-04 vaut hors échantillon — P-04 le démontre |
 | O-02 | `max ∂²f/∂I² ∈ [−2,9·10⁻¹⁰ ; 0]` | idem | Idem pour P-06 |
-| O-03 | Newton : **2 à 13 itérations** depuis `I₀ = 0` | 9 jeux | **Aucune borne** — le budget de 30 n'est pas démontré |
+| O-03 | Newton : **2 à 13 itérations** depuis `I₀ = 0` | 9 jeux | **Aucune borne** — le budget de 30 n'est pas démontré, et O-16 montre qu'il est dépassé hors de ces 9 jeux |
 | O-04 | Newton déborde depuis `I₀ = 10⁴` | 1 contre-exemple | Suffit à **réfuter** « depuis tout point de départ » |
 | O-05 | `u_max ∈ [10,1 ; 35,7]` | 9 jeux | Que `u_max` soit borné sur tout `𝓗` — il ne l'est pas, d'où la garde (17) |
 | O-06 | Garde (17) : marge `≥ 696` unités log | 9 jeux | Idem |
@@ -140,8 +140,16 @@ traduit.
 | O-13 | MPP en `V_j` vs balayage : écart `\le 7,6·10⁻⁴ V` | 9 jeux | Une erreur de la méthode — c'est la **résolution du balayage** |
 | O-14 | Marge au plancher = **450**, invariante | `I_sc` de 20 A à 10⁻²⁰ A | Que ce soit vrai en dessous des dénormaux |
 | O-15 | `\log_2(W_0/τ_f) = 40,4` invariant | idem | — (P-20 le démontre) |
+| O-16 | Budget Newton dépassé dans **0,642 %** du domaine §7.1, pire décompte **218**, prédiction `(I_ph − I*)·R_s/a` = 217,1 | 200 000 jeux | Que 218 soit une borne. L'estimation est **asymptotique** dans le régime exponentiel et ne dit rien du régime de transition |
+| O-17 | Le critère d'arrêt **en largeur** du repli n'est **jamais** atteint ; pire décompte 31 sur 82 | 237 000 cas, dont 76 535 raides avec `V` à `10⁻¹⁶` de `V_oc` | Qu'il soit inatteignable. Il est conservé parce que la démonstration de la borne 82 raisonne sur la largeur |
 
-**15 observations. Aucune n'est promue.**
+**17 observations. Aucune n'est promue.**
+
+> **O-16 et O-17 sont nées de l'implémentation**, pas de la
+> formalisation, et elles corrigent l'une et complètent l'autre. O-16
+> réfute la lecture générale de O-03 ; O-17 explique pourquoi
+> `solver.rs` conserve des lignes non couvertes. Voir ADR-0012 D-5 et
+> D-6, et la doc 37 §5.
 
 ### 4.1 Le cas O-08 mérite d'être isolé
 

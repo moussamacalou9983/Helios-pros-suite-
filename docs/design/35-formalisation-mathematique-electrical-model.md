@@ -387,6 +387,23 @@ quantité **calculable avant la première itération**.
 Le budget de 30 est un **budget**, non une borne : la borne démontrée est
 celle du repli (§6). **[O]** : 2 à 13 itérations mesurées sur les 9 jeux.
 
+> **Correction apportée par l'implémentation (2026-08-12).** Cette mesure
+> vaut pour les neuf jeux et n'est **pas** un énoncé général. Sur le
+> domaine de génération du §7.1 de la doc 36, le budget est dépassé dans
+> **0,642 %** des jeux admissibles, le pire en exigeant **218**.
+>
+> Le phénomène est calculable. Dans le régime exponentiel profond,
+> `f ≈ −I_0 e^u` et `f' ≈ −(R_s I_0/a) e^u`, donc le pas de Newton vaut
+> `−a/R_s` : une **constante**, indépendante de `I_0`, de `V` et de la
+> distance restant à parcourir. La descente depuis `I_1 ≈ I_ph` jusqu'à
+> `I*` coûte donc `≈ (I_ph − I*)·R_s/a` itérations — le même groupe que
+> celui qui domine la garde (17). Pour un module réel il vaut 1,6 ; le
+> domaine de génération monte à `R_s = 5 Ω`, qu'aucun module ne présente.
+>
+> **Statut `[O]`, non promu** : l'estimation est asymptotique et ne dit
+> rien de rigoureux du régime de transition. Voir O-16 (doc 36) et
+> l'exemple `newton_budget_census`.
+
 > **Formulation autorisée** : « Sous `𝓗`, depuis `I₀ = 0`, l'itération
 > converge, tous les itérés restant dans `[I*, I_ph]`. » — jamais
 > « converge toujours ».
@@ -989,7 +1006,7 @@ discrète plafonne, la recherche de racine non.
 | `τ_h` | Résidu, forme en tension | `10^{-12} V_{oc}/R_{sh}`, plafonné à `100\varepsilon I_{sc}` | **[P]** par (15) | Dépend de `R_sh` — **indépendante** de `τ_f` |
 | `τ_P` | Erreur relative sur `P` | `2\cdot10^{-12}` | **[P]** dérivée | Propagation sur `P = V·I` |
 | `τ_{V_j}` | Racine de `dP/dV_j` | `10^{-12} V_{oc}` | **[P]** | Atteignable car `g'(V_{mp}) \ne 0` |
-| `N_{Newton}` | Budget Newton | 30 | **[O]** | 2 à 13 mesurées ; au-delà = pathologie |
+| `N_{Newton}` | Budget Newton | 30 | **[O]** | 2 à 13 sur les 9 jeux ; dépassé dans 0,642 % du domaine §7.1 — **non pathologique**, voir §4.5 |
 | `N_{repli}` | Borne repli | **82** | **[P]** par (16) | Bissection imposée 1 sur 2 |
 
 **[O]** Invariance vérifiée : marge au plancher = 450 et

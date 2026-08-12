@@ -317,3 +317,84 @@ validation complète, sans bloquer la conception :
 |---|---|
 | Cinq fiches constructeurs réelles — **à ne pas simuler** | doc 31 §13 |
 | Grille exacte IEC 61853-1 — lecture du texte normatif requise | doc 30 §9.4 |
+
+---
+
+## Partie E — Implémentation du noyau Single-Diode d'`electrical_model`
+
+Exigences issues du brief d'implémentation du 12 août 2026 (13 étapes).
+**C'est la première partie de la matrice où la colonne « Tests » désigne
+des tests qui existent et s'exécutent**, et non des tests planifiés.
+
+Références : `docs/design/37-rapport-implementation-noyau-single-diode.md`,
+ADR-0012.
+
+| ID | Exigence | Code | Tests **existants** | Documentation |
+|---|---|---|---|---|
+| ELM-087 | Kernel : `f`, `∂f/∂I`, `∂²f/∂I²`, `∂f/∂V` **et rien d'autre** | `single_diode/residual.rs` | `inv_em_der_01`, `inv_em_der_02`, `inv_em_dim_03_04` | doc 37 §2 |
+| ELM-088 | Chaque fonction nomme l'équation de la doc 35 qu'elle traduit | `residual.rs`, `solver.rs` | — (revue) | doc 37 §2 |
+| ELM-089 | **Aucune équation réécrite** pour arranger l'implémentation | tout le crate | — (revue) | ADR-0012 |
+| ELM-090 | `diode_term` : `expm1` sous `u = 1`, domaine logarithmique au-dessus | `residual.rs` | `inv_em_ovf_03`, `pb_05` | doc 37 §2.1 |
+| ELM-091 | `R_s = 0` : **prédicat exact**, aucun epsilon | `parameters.rs::has_zero_series_resistance` | `inv_em_rs0_02` | **ADR-0012 D-2** |
+| ELM-092 | Branche `R_s = 0` : solution analytique, **zéro itération** | `solver.rs::closed_form_zero_series` | `inv_em_rs0_01`, `pb_10` | ADR-0012 D-3 |
+| ELM-093 | Domaine contrôlé **avant** évaluation ; jamais de `NaN`/`Inf` provoqué | `parameters.rs::new` | `inv_em_dom_09`, `inv_em_ovf_01`, `pb_05` | ADR-0012 D-1 |
+| ELM-094 | Borne fermée `V_oc ≤ a·ln(1 + I_ph/I_0)` — garde non circulaire | `parameters.rs::open_circuit_voltage_bound` | `inv_em_ovf_01`, `pb_12` | **ADR-0012 D-1** |
+| ELM-095 | Terme dominant de la garde = `I_ph·R_s/a`, **non** `V_oc/a` | `parameters.rs::exponent_headroom` | `inv_em_dom_09` | ADR-0012 D-1 |
+| ELM-096 | Test de domaine `V ≤ V_oc` **est** `f(0;V) ≥ 0` — aucune résolution imbriquée | `solver.rs::current_at_voltage` | `inv_em_dom_08` | ADR-0012 D-3 |
+| ELM-097 | Newton depuis `I₀ = 0`, invariant vérifié **avant chaque itération** | `solver.rs::newton` | `inv_em_new_01`, `pb_17` | doc 37 §5.1 |
+| ELM-098 | Repli déterministe : bornes, signe, arrêt, max, erreur typée | `solver.rs::bracketed_fallback` | `inv_em_fbk_01`, `inv_em_fbk_02`, `pb_15` | ADR-0012 D-4 |
+| ELM-099 | **Le repli n'est jamais appelé « Brent »** | `solver.rs` | — (revue) | **ADR-0012 D-4** |
+| ELM-100 | Sept types d'erreur, chacun nommant le paramètre et l'hypothèse | `error.rs` | `inv_em_dom_01_to_05`, `inv_em_dom_06_07`, `pb_18` | doc 37 §1 |
+| ELM-101 | **Aucun `unwrap()` ni `expect()`** dans le chemin normal du moteur | tout le crate | — (revue + Clippy) | doc 37 §7 |
+| ELM-102 | H-6 et H-7 refusées **à l'équation (2)**, au nom du bon paramètre | `parameters.rs::from_diode` | `inv_em_dom_06_07` | **ADR-0012 D-7** |
+| ELM-103 | 36 des 44 invariants spécifiés testés, 8 différés **avec motif** | `tests/invariants.rs` | 34 fonctions de test | doc 37 §3 |
+| ELM-104 | `INV-EM-DIM-01` = test de **compilation** (`compile_fail`) | `single_diode/mod.rs` | `cargo test --doc` | doc 37 §3.2 |
+| ELM-105 | `INV-EM-FBK-04` ajouté : les deux points d'entrée refusent le même domaine | `tests/invariants.rs` | `inv_em_fbk_04` | doc 37 §3.1 |
+| ELM-106 | 14 propriétés génératives, graine imprimée, flux distinct par propriété | `tests/properties.rs` | `pb_01`…`pb_19` | doc 37 §4 |
+| ELM-107 | Plancher de cas **protégé par la suite** : abaissement impossible | `tests/properties.rs` | `zz_the_property_census…` | doc 37 §4 |
+| ELM-108 | 8 propriétés différées **listées avec leur motif** dans la matrice générée | `tests/properties.rs::DEFERRED` | `the_property_inventory_is_coherent` | doc 37 §4.1 |
+| ELM-109 | **Validation indépendante** : jamais la fonction testée pour produire son attendu | `tests/common/mod.rs` | `open_circuit_voltage` (bissection sur le seul résidu) | doc 37 §4 |
+| ELM-110 | Le budget de Newton **est dépassé** dans 0,642 % du domaine — mesuré, non promu | `examples/newton_budget_census.rs` | mesure reproductible | **ADR-0012 D-5** |
+| ELM-111 | Critère d'arrêt en largeur du repli **jamais atteint** — conservé pour la preuve | `solver.rs` | mesure §5.2 | **ADR-0012 D-6** |
+| ELM-112 | 35 lignes non couvertes de `solver.rs` **énumérées et justifiées une par une** | — | — | **doc 37 §6.1** |
+| ELM-113 | **Aucune exclusion de couverture** posée pour redresser un chiffre | — | — | ADR-0012 D-6 |
+| ELM-114 | CI : invariants + campagne de propriétés à 5 000 cas, matrice publiée | `.github/workflows/ci.yml` | jobs dédiés | doc 37 §4 |
+| ELM-115 | **Aucun MPP, CEC, Sandia, IEC 61853** implémenté | absence vérifiée | `single_diode/mod.rs` (tableau des absences) | doc 37 §1 |
+
+**Bilan Partie E** : **29 exigences, 29 implémentées et testées.**
+
+### Décompte des invariants et propriétés
+
+| Grandeur | Spécifié | Livré | Différé |
+|---|---:|---:|---:|
+| Identifiants d'invariants | 44 | **36** (+1 ajouté) | 8 |
+| Propriétés génératives | 22 | **14** | 8 |
+| Propriétés démontrées `[P]` couvertes | 35 | **26** (dont 1 partielle) | 7 |
+
+Les 8 invariants et 8 propriétés différés le sont **pour le même
+motif** : ils portent sur la puissance, sur le MPP ou sur la translation
+d'éclairement, qu'aucune ligne de ce noyau ne calcule. Le motif est
+consigné dans la matrice générée par la suite elle-même, et non
+seulement ici.
+
+### Portes de qualité — état au 12 août 2026
+
+| Porte | Résultat |
+|---|---|
+| `cargo fmt --all -- --check` | ✅ |
+| `cargo clippy --workspace --all-targets -- -D warnings` | ✅ 0 |
+| `cargo test --workspace` | ✅ 0 échec |
+| `cargo doc --workspace --no-deps` | ✅ 0 avertissement |
+| Couverture de lignes (atelier) | ✅ **98,22 %** (seuil 95 %) |
+| Cas de propriétés vérifiés sans échec | ✅ **700 000** |
+
+### Ce qui reste dû
+
+**Aucune des 8 validations empiriques `[E]` n'est acquise.** Le noyau est
+mathématiquement vérifié et n'a **jamais été confronté à un module
+réel**. Les deux points bloquants hérités demeurent :
+
+| Point | Suivi |
+|---|---|
+| Cinq fiches constructeurs réelles — **à ne pas simuler** | doc 31 §13 |
+| Grille exacte IEC 61853-1 — lecture du texte normatif requise | doc 30 §9.4 |
