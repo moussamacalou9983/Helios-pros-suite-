@@ -53,11 +53,12 @@ La famille la plus forte : elle ne dépend d'aucune implémentation tierce.
 | E1.3 | `I_0 → 0` | `I = I_L − V/R_sh`, droite |
 | E1.4 | `V = 0` | `I_sc` par résolution directe |
 | E1.5 | `I = 0` | `V_oc` par forme fermée quand `R_s = 0` |
-| E1.6 | Cohérence Lambert W / Newton / Brent | Les trois doivent coïncider à la tolérance |
+| E1.6 | Cohérence Newton / repli à encadrement / bissection | Les trois doivent coïncider à la tolérance |
 
 **E1.6 est central** : trois méthodes indépendantes convergeant vers la
 même valeur constituent une vérification croisée qu'aucun oracle externe
-ne remplace.
+ne remplace. *(Corrigé le 12/08/2026 : Lambert W n'est pas implémentée —
+ADR-0010 ; la bissection fournit la troisième méthode.)*
 
 ---
 
@@ -88,7 +89,7 @@ Distincte de E2 : **le solveur et le modèle échouent différemment.**
 | E3.1 | Le résidu au point rendu est sous la tolérance déclarée |
 | E3.2 | Le nombre d'itérations reste sous la borne |
 | E3.3 | La non-convergence produit une **erreur typée**, jamais une valeur |
-| E3.4 | Le repli Brent s'active quand Newton sort du domaine |
+| E3.4 | Le repli s'active sur condition **objective** : itéré non fini, sortie de l'encadrement, ou budget épuisé |
 | E3.5 | Le résultat est identique quelle que soit la branche empruntée |
 | E3.6 | Déterminisme : deux appels identiques donnent des bits identiques |
 
@@ -120,10 +121,10 @@ Cas exigeant une attention particulière :
 | # | Cas | Piège |
 |---|---|---|
 | E5.1 | `G → 0` | Ni NaN ni `−∞` ; le SAPM doit **refuser**, pas extrapoler |
-| E5.4 | `R_s = 0` | La forme Lambert W en courant divise par `R_s` |
-| E5.7 | `R_sh` faible | L'unimodalité de `P(V)` peut tomber |
+| E5.4 | `R_s = 0` | Résidu **affine**, solution exacte en 1 itération ; **aucun seuil** pour `R_s → 0` (doc 34 §6) |
+| E5.7 | `R_sh` faible | L'unicité du MPP est **démontrée** (doc 34 §10) ; le test **vérifie la démonstration**, y compris à `R_sh = 1,5 Ω` |
 | E5.10 | Pas de MPP | Erreur typée, jamais un point plausible mais faux |
-| E5.14 | Débordement d'exponentielle | Détecté **avant** évaluation |
+| E5.14 | Débordement d'exponentielle | `u_max` contrôlé **a priori** ; refus, jamais `try/catch` (doc 34 §7) |
 
 ---
 
@@ -205,6 +206,24 @@ plutôt que masquées par un desserrage de tolérance.
 | Avertissements clippy | 0 |
 | Régressions | 0 |
 | Matrice de scénarios | Générée et publiée en artefact |
+
+---
+
+## 12bis. Jeux de tests scientifiques — préparés
+
+Les **22 jeux de paramètres** exigés avant implémentation sont définis
+dans `docs/design/34-audit-mathematique-electrical-model.md` §16. Neuf
+d'entre eux ont déjà servi à la vérification numérique de l'audit.
+
+Ils couvrent : `R_s = 0`, `R_s → 0`, `R_s` élevé, `R_sh → ∞`, `R_sh`
+faible, irradiance nulle, très faible, STC, élevée, températures extrêmes,
+`I_sc` faible, paramètres incohérents, débordement potentiel, convergence
+rapide, convergence difficile, absence de solution, MPP proche des bornes,
+et extrema multiples (dont l'audit démontre l'impossibilité, §10 — le jeu
+sert donc à **vérifier la démonstration**, pas à traiter un cas attendu).
+
+Tous sont **synthétiques et documentés comme tels** : aucun ne prétend
+décrire un produit réel.
 
 ---
 

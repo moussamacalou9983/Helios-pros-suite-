@@ -7,6 +7,15 @@
 
 ---
 
+> ## ⚠️ Avis de correction — 2026-08-12
+>
+> Les §8 (méthode numérique) et §15 (décisions ouvertes) de ce document
+> sont **remplacés** par la doc 32 (revue scientifique), la doc 34 (audit
+> mathématique) et les ADR-0009 et ADR-0010. Notamment : Lambert W n'est
+> **pas** implémentée, le MPP se résout comme racine de `dP/dV` et son
+> unicité est **démontrée**, et les sept décisions ouvertes sont fermées.
+> Le texte est conservé pour la traçabilité.
+
 ## 0. Principe directeur
 
 > `pv_module` décrit **ce qu'est** le module.

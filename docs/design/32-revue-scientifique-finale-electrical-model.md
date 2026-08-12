@@ -7,6 +7,24 @@
 
 ---
 
+> ## ⚠️ Avis de correction — 2026-08-12
+>
+> L'audit mathématique (`docs/design/34-audit-mathematique-electrical-model.md`,
+> ADR-0010) a **invalidé deux affirmations** de ce document et **démontré**
+> une propriété qu'il déclarait hors d'atteinte :
+>
+> | § | Affirmation | Correction |
+> |---|---|---|
+> | §4.3, §4.8 | « Newton converge **depuis tout point de départ** » | **RETIRÉE** — vraie dans ℝ, fausse en `f64` (débordement depuis `I₀ = 10⁴`). Remplacée par une garantie conditionnée à `I₀ = 0`, avec itérés prouvés dans `[I*, I_L]` |
+> | §7.3 | « Itérations Brent : **81**, dérivé » | **RETIRÉE** — n'est pas une borne de Brent (la vraie est ≈ 1636). **82** vaut pour un schéma à bissection **imposée** une itération sur deux |
+> | §7.4, §13 | « L'unicité du MPP **n'est pas démontrée** » | **RETIRÉE** — l'unicité **est** démontrée (audit §10), y compris pour `R_sh = 1,5 Ω` |
+> | §3.4 | « Phang initialise le système 5×5 depuis une fiche » | **CORRIGÉE** — Phang exige les pentes `dV/dI`, absentes des fiches |
+> | §4.4 | « le résidu majore l'erreur » | **CONSERVÉE** en courant ; **ne se transpose pas** en tension (`|ΔV| ≤ R_sh·|h|`) |
+>
+> Le texte ci-dessous est **conservé tel quel** pour la traçabilité, comme
+> l'exige `docs/governance/adr-policy.md`. Les énoncés faisant foi sont
+> ceux de la doc 34 et de l'ADR-0010.
+
 ## 0. Résumé des renversements
 
 Cette revue a produit trois résultats qui **contredisent** les

@@ -7,6 +7,14 @@
 
 ---
 
+> ## ⚠️ Avis de correction — 2026-08-12
+>
+> L'audit mathématique (doc 34, ADR-0010) a invalidé deux des garanties
+> annoncées ici — « Newton converge depuis tout point de départ » et la
+> borne d'itérations de 81 — et **démontré** l'unicité du MPP que ce
+> rapport déclarait non établie. Voir doc 34 §0 pour le verdict complet.
+> Le texte est conservé pour la traçabilité.
+
 ## 1. Ce que cette phase devait produire
 
 Fermer sept décisions ouvertes, sans hypothèse implicite, sans paramètre

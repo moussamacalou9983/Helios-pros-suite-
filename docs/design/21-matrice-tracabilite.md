@@ -234,6 +234,35 @@ l'ADR-0009, sur l'analyse de la doc 32.
 | D-6 | PVsyst différé, ADR dédié ; **jamais un oracle** | doc 32 §9.2 |
 | D-7 | `10⁻¹²·I_sc` relatif ; Newton 30 ; **Brent 81 calculé** ; critère sur le seul résidu | doc 32 §7 |
 
+### Audit mathématique final (2026-08-12) — ADR-0010
+
+L'audit (doc 34) a **invalidé deux garanties** annoncées par l'ADR-0009 et
+**démontré** une propriété que celui-ci déclarait hors d'atteinte.
+
+| ID | Exigence | Spécification | Tests planifiés | Documentation |
+|---|---|---|---|---|
+| ELM-045 | ⚠️ **RETRAIT** : « Newton converge depuis tout point de départ » — vraie dans ℝ, **fausse en `f64`** | doc 34 §4.2 | E3.4, E5.14 | ADR-0010 D-1 |
+| ELM-046 | Garantie de remplacement : depuis `I₀ = 0`, itérés **prouvés** dans `[I*, I_L]`, `u_max` calculable a priori | doc 34 §4.3 | E3.1, E3.2 | ADR-0010 D-1 |
+| ELM-047 | ⚠️ **RETRAIT** : borne de Brent « 81 » — la borne réelle de Brent est ≈ 1636 | doc 34 §9.2 | — | ADR-0010 D-2 |
+| ELM-048 | Borne **82** démontrée pour un schéma à **bissection imposée** 1 itération sur 2 | doc 34 §9.3 | E3.2 | ADR-0010 D-2 |
+| ELM-049 | ✅ **UNICITÉ DU MPP DÉMONTRÉE** — via `V_j`, 3 lemmes, vérifiée sur 9 jeux dont `R_sh = 1,5 Ω` | doc 34 §10 | E2.1, E5.7, E5.10 | ADR-0010 D-3 |
+| ELM-050 | Solveur = Newton **avec** sauvegarde ; ni Newton seul, ni Brent seul | doc 34 §8.2 | E3.4, E3.5 | ADR-0010 D-4 |
+| ELM-051 | ⚠️ Borne résidu/erreur **ne se transpose pas** en tension : `|ΔV| ≤ R_sh·|h|` | doc 34 §5.2 | E3.1, E7.6 | ADR-0010 D-5 |
+| ELM-052 | `tol_V` seuil **distinct** : `10⁻¹²·V_oc/R_sh`, plafonné au plancher d'arrondi | doc 34 §12.3 | E3.1 | ADR-0010 D-5 |
+| ELM-053 | **Aucun seuil** pour `R_s → 0` — pas de singularité, prédicat **exact** `R_s == 0` | doc 34 §6.2 | E1.1, E1.2, E5.4 | ADR-0010 D-6 |
+| ELM-054 | Débordement `exp` : contrôle **a priori** + domaine logarithmique + `expm1`, **jamais `try/catch`** | doc 34 §7.2 | E5.14 | ADR-0010 D-7 |
+| ELM-055 | ⚠️ **CORRECTION** : Phang exige les pentes `dV/dI`, **absentes des fiches** | doc 34 §13.2 | E6.1 | ADR-0010 D-8 |
+| ELM-056 | Point de départ ≠ paramètre : solution convergée **vérifiée** contre les 5 contraintes | doc 34 §13.4 | E6.1, E6.6 | ADR-0010 D-8 |
+| ELM-057 | Échec d'identification **n'invalide jamais le moteur** (`PublishedAsIs` reste utilisable) | doc 34 §13.5 | E6.2, E6.4 | ADR-0010 D-8 |
+| ELM-058 | `E_g` : **constante d'ajustement du modèle (F)** ≠ **gap intrinsèque du matériau (B/C)** — deux types | doc 34 §14.3 | E8.2, E8.4 | ADR-0010 |
+| ELM-059 | IEC 61853 : mesuré (B) / interpolé (D) / hors domaine **interdit** ; méthode d'interpolation **différée** | doc 34 §15 | E9.3 | ADR-0010 |
+| ELM-060 | Tolérance relative **auto-cohérente jusqu'aux dénormaux** — marge 450× invariante de 20 A à 10⁻²⁰ A | doc 34 §12.5 | E3.1, E11.1 | ADR-0010 D-5 |
+| ELM-061 | **22 jeux de tests** scientifiques préparés, ≥ 3 scénarios chacun | doc 34 §16 | E1–E5 | doc 34 §16 |
+| ELM-062 | Purge des formulations absolues non prouvées | doc 34 §17 | — (revue documentaire) | ADR-0010 |
+
+**Bilan Partie D après audit** : 62 exigences, **0 implémentée**. Deux
+garanties excessives retirées, une propriété gagnée, deux corrections.
+
 **Trois renversements** de recommandations provisoires sont consignés :
 Newton porte la garantie (et non Brent), Lambert W n'est pas implémentée,
 le MPP se résout comme racine de `dP/dV` et non par maximisation.
