@@ -15,7 +15,8 @@ Gabarit pour tout nouvel ADR : `docs/adr/0000-template.md`.
 | [0005](0005-pv-module-data-model.md) | Modèle de données et incertitudes de `pv_module` | **Proposé** — D-3 remplacée par ADR-0006 | Nouvelle architecture (modèle de données) |
 | [0006](0006-measurement-provenance-conflicts.md) | Porteur de valeur, provenance et gestion formelle des conflits | **Proposé** | Nouvelle architecture (modèle de données) |
 | [0007](0007-invariant-inventory.md) | Inventaire des invariants : décompte de référence et ajout d'`INV-STR-004` | **Proposé** | Règles de validation |
-| [0008](0008-electrical-model-architecture.md) | Architecture d'`electrical_model` : multi-modèles, et séparation points / courbe | **Proposé** | Nouvelle architecture |
+| [0008](0008-electrical-model-architecture.md) | Architecture d'`electrical_model` : multi-modèles, et séparation points / courbe | **Proposé** — 7 décisions fermées par ADR-0009 | Nouvelle architecture |
+| [0009](0009-electrical-model-decisions.md) | Fermeture des sept décisions ouvertes d'`electrical_model` | **Proposé** | Nouvelle architecture + méthode numérique |
 
 Les ADR 0001-0003 sont **rétroactifs** : ils documentent des décisions
 déjà prises et mises en œuvre pendant la Phase 1, rédigés au moment de la

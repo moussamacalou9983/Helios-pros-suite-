@@ -193,23 +193,56 @@ validation explicite. La colonne « Tests » désigne le test **planifié**
 | ELM-023 | Monotonie du résidu démontrée, encadrement garanti | doc 30 §4.5 | E3.4, E3.5 | ADR-0008 D-4 |
 | ELM-024 | ≥ 3 scénarios par règle et par cas limite, mesurés et protégés par la CI | doc 31 §0 | E5, doc 31 §12 | doc 29 §6.0 |
 
-**Bilan Partie D** : 24 exigences de conception spécifiées et reliées à un
-test planifié ou à un contrôle documentaire. **0/24 implémentées** — état
+| ELM-025 | **Trois abstractions** : `ParameterizedElectricalModel` / `PointBasedPerformanceModel` / `ContinuousIVModel` | doc 32 §2 | **E7.2 (`compile_fail`)** | ADR-0009 D-1 |
+| ELM-026 | `ValidityDomain` obligatoire — un modèle qui ignore son domaine ne peut pas refuser | doc 32 §2.4 | E5.1, E9.1 | ADR-0009 D-1 |
+| ELM-027 | Cinq statuts de suffisance des données, matrice source × modèle complète | doc 32 §8 | E6.2, E6.5 | ADR-0009 D-2 |
+| ELM-028 | Identification `FivePointDeSoto` initialisée par Phang ; **Villalva écartée** (paramètre libre arbitraire) | doc 32 §3.3, §3.4 | E6.1, E6.6 | ADR-0009 D-3 |
+| ELM-029 | **Newton globalement convergent** — démonstration (décroissance + concavité) | doc 32 §4.3 | E1.6, E3.4, E3.5 | ADR-0009 D-4 |
+| ELM-030 | **Le résidu majore l'erreur** — critère de convergence = borne garantie | doc 32 §4.4 | E3.1 | ADR-0009 D-4 |
+| ELM-031 | `R_s = 0` : résidu affine, **solution exacte sans itération** | doc 32 §4.5 | E1.1, E1.2, E5.4 | ADR-0009 D-4 |
+| ELM-032 | **Lambert W non implémentée** — ne paie pas son coût | doc 32 §5 | — (absence vérifiée) | ADR-0009 D-5 |
+| ELM-033 | **MPP résolu comme racine de `dP/dV`**, jamais par maximisation de `P` (plafond `√ε`) | doc 32 §7.4 | E2.1, E5.10 | ADR-0009 D-4 |
+| ELM-034 | Unicité du MPP non garantie → **vérification obligatoire** du maximum | doc 32 §7.4 | E5.7, E5.10 | ADR-0009 D-4 |
+| ELM-035 | `E_g` = propriété du **matériau**, jamais de l'architecture (HJT/TOPCon = silicium) | doc 32 §6.2 | E6.2 | ADR-0009 D-6 |
+| ELM-036 | `E_g` appartient au **jeu de paramètres** — cohérence identification/translation | doc 32 §6.4 | E8.2, E8.4 | ADR-0009 D-6 |
+| ELM-037 | Tolérances **dérivées** : 450× le plancher d'arrondi, 10⁻¹⁰ de l'incertitude des données | doc 32 §7.2, §7.3 | E3.1, E11.1 | ADR-0009 D-7 |
+| ELM-038 | Bornes d'itération **calculées** : Brent 81 = 2·log₂((I_L+I_0)/τ) | doc 32 §7.3 | E3.2 | ADR-0009 D-7 |
+| ELM-039 | **Vérification dimensionnelle** de chaque équation avant implémentation | doc 32 §10 | E7.6 | ADR-0009 D-8 |
+| ELM-040 | **`α_Isc` absolu dans De Soto, relatif dans le SAPM** — facteur 10 | doc 32 §10.4 | **E7.6** | ADR-0009 D-8 |
+| ELM-041 | `C_3` (SAPM) en V⁻¹, contrairement à `C_0`–`C_2` sans dimension | doc 32 §10.5 | E7.6 | ADR-0009 D-8 |
+| ELM-042 | IEC 61853 = **modèle à part entière** (interpolation, zéro paramètre ajusté) | doc 32 §1.3 | E9.3 | ADR-0009 D-11 |
+| ELM-043 | Deux diodes **hors périmètre** — sous-déterminé sans hypothèses injustifiées | doc 32 §1.4 | — | ADR-0009 D-10 |
+| ELM-044 | Tests de conservation C-1 à C-8, dont **zéro NaN/Inf en sortie** | doc 32 §9.3 | E2, E3.6 | doc 32 §9.3 |
+
+**Bilan Partie D** : 44 exigences de conception spécifiées et reliées à un
+test planifié ou à un contrôle documentaire. **0/44 implémentées** — état
 attendu et conforme : l'implémentation est conditionnée à une validation
 explicite.
 
-Sept décisions restent **ouvertes** et sont suivies comme telles
-(doc 30 §15) :
+### Fermeture des sept décisions (phase 2A)
 
-| Décision | Point ouvert | Tranchée par |
+Les sept décisions ouvertes par l'ADR-0008 sont **fermées** par
+l'ADR-0009, sur l'analyse de la doc 32.
+
+| Décision | Fermée par | Référence |
 |---|---|---|
-| D-1 | Méthode numérique définitive | ADR-0008, après mesure |
-| D-2 | Type propre pour `a`, ou `Voltage` | ADR-0008 |
-| D-3 | Modèle par défaut si plusieurs sont applicables | ADR-0008 |
-| D-4 | Seuil d'irradiance sous lequel le SAPM est refusé | À mesurer |
-| D-5 | `E_g` et coefficient thermique pour les non-silicium | Bibliographie |
-| D-6 | PVsyst — modèle et format, traités séparément | ADR dédié |
-| D-7 | Tolérances et bornes d'itération | À mesurer |
+| D-1 | Newton principal (convergence démontrée), forme fermée si `R_s = 0`, Brent en repli, **Lambert W écartée** | doc 32 §4.8, §5 |
+| D-2 | Type propre pour `a` — `a + V_oc` doit être impossible à écrire | doc 32 §11.1 |
+| D-3 | **Le moteur ne choisit pas** — il expose les modèles applicables avec leur statut | doc 32 §8 |
+| D-4 | Refus **hors enveloppe de régression** via `ValidityDomain` ; pas de constante universelle | doc 32 §1.2, §2.4 |
+| D-5 | `E_g` = matériau, jamais architecture ; appartient au jeu de paramètres ; sourcé ou `INSUFFICIENT_DATA` | doc 32 §6 |
+| D-6 | PVsyst différé, ADR dédié ; **jamais un oracle** | doc 32 §9.2 |
+| D-7 | `10⁻¹²·I_sc` relatif ; Newton 30 ; **Brent 81 calculé** ; critère sur le seul résidu | doc 32 §7 |
+
+**Trois renversements** de recommandations provisoires sont consignés :
+Newton porte la garantie (et non Brent), Lambert W n'est pas implémentée,
+le MPP se résout comme racine de `dP/dV` et non par maximisation.
+
+Une **découverte non prévue** de l'analyse dimensionnelle : `α_Isc` n'a
+pas la même dimension dans De Soto (A/K) et dans le SAPM (K⁻¹), soit un
+facteur `I_sco ≈ 10`. Ceci démontre rétroactivement que la
+`CoefficientBasis` de `pv_module` était une nécessité dimensionnelle, non
+une précaution.
 
 Deux points ouverts **hérités** de `pv_module` restent bloquants pour une
 validation complète, sans bloquer la conception :
