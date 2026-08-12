@@ -1,0 +1,21 @@
+[package]
+name = "simulation"
+description = "Top-level orchestration of the HeliosPro scientific engine: solar position -> plane-of-array irradiance -> cell temperature (the complete energy balance, per the Phase 1 brief; electrical/loss modelling to be wired in once `electrical_model` and `losses` land)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_constants = { path = "../core_constants" }
+core_math = { path = "../core_math" }
+core_units = { path = "../core_units" }
+solar_geometry = { path = "../solar_geometry" }
+solar_position = { path = "../solar_position" }
+irradiance = { path = "../irradiance" }
+transposition = { path = "../transposition" }
+thermal_model = { path = "../thermal_model" }
+
+[lints]
+workspace = true

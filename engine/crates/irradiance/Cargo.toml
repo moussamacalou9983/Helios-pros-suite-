@@ -1,0 +1,17 @@
+[package]
+name = "irradiance"
+description = "Extraterrestrial irradiance and GHI/DNI/DHI relationships (closure and Erbs decomposition) for the HeliosPro scientific engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_constants = { path = "../core_constants" }
+core_units = { path = "../core_units" }
+core_math = { path = "../core_math" }
+solar_geometry = { path = "../solar_geometry" }
+
+[lints]
+workspace = true

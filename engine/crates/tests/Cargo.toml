@@ -1,0 +1,33 @@
+[package]
+name = "tests"
+description = "Cross-crate regression and integration tests for the HeliosPro scientific engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+
+[dev-dependencies]
+core_math = { path = "../core_math" }
+core_units = { path = "../core_units" }
+solar_geometry = { path = "../solar_geometry" }
+solar_position = { path = "../solar_position" }
+thermal_model = { path = "../thermal_model" }
+simulation = { path = "../simulation" }
+
+[lints.rust]
+# Diverges from the workspace default (`unsafe_code = "forbid"`, see
+# `[lints] workspace = true` on every other crate) for exactly one reason:
+# `tests/benchmarks.rs`'s allocation-counting `#[global_allocator]`
+# instrumentation must implement `std::alloc::GlobalAlloc`, whose methods
+# are `unsafe fn` by the standard library's own trait definition -- there
+# is no safe way to hook global allocation/deallocation in std-only Rust.
+# This crate holds no production engine code (see `src/lib.rs`'s module
+# doc): the forbid it relaxes protects the scientific engine crates, which
+# remain unaffected (each still sets `unsafe_code = "forbid"` for itself
+# via `[lints] workspace = true`, independently of this crate's manifest).
+missing_docs = "warn"
+unsafe_code = "allow"

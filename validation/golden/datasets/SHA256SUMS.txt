@@ -1,0 +1,2 @@
+54b66665b3409fad411841da4da9ab61dd22fcf5b4601e2dfa7cf651d1005f35  pvlib_reference_dataset.json
+51e89abd87e382df24de52967007343fd139103a6283f34a81ad31f268684077  global_campaign_dataset.csv

@@ -1,0 +1,16 @@
+[package]
+name = "validation"
+description = "External validation framework: pvlib reference dataset and automated per-quantity error reporting for HeliosPro's solar-position engines"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+core_math = { path = "../core_math" }
+core_units = { path = "../core_units" }
+solar_position = { path = "../solar_position" }
+
+[lints]
+workspace = true

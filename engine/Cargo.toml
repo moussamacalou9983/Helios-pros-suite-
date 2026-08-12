@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/core_constants",
+    "crates/core_units",
+    "crates/core_math",
+    "crates/solar_geometry",
+    "crates/solar_position",
+    "crates/irradiance",
+    "crates/transposition",
+    "crates/pv_module",
+    "crates/thermal_model",
+    "crates/electrical_model",
+    "crates/losses",
+    "crates/simulation",
+    "crates/validation",
+    "crates/tests",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "LicenseRef-HeliosPro-Proprietary"
+authors = ["HeliosPro Engineering"]
+repository = "https://github.com/moussamacalou9983/Helios-pros-suite-"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[profile.release]
+opt-level = 3
+lto = true
+
+[profile.dev]
+opt-level = 1
